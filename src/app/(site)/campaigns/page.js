@@ -1,5 +1,6 @@
 import SiteApiService from '@/app/services/site-api';
 import { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata = {
   title: 'Campaigns | Global Aid Foundation',
@@ -56,17 +57,18 @@ export default async function CampaignsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="py-20 md:py-32 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-20 md:py-32 min-h-[320px] bg-cover bg-center" style={{ backgroundImage: "url('/images/campains/Healthy_Smile_For_Underprivileged_Children/titleImage.jpg')" }}>
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="font-poppins uppercase text-sm font-semibold tracking-widest text-[#D4A71C] mb-2">
+            <p className="font-poppins uppercase text-sm font-semibold tracking-widest text-[#FFD700] mb-2">
               Our Campaigns
             </p>
-            <h1 className="text-4xl md:text-5xl font-black text-[#222222] mb-6 font-playfair"
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-6 font-playfair"
               style={{ fontFamily: "'Playfair Display', serif" }}>
               Transforming Lives Through Our Initiatives
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-poppins">
+            <p className="text-xl text-gray-100 max-w-3xl mx-auto font-poppins">
               Discover our ongoing campaigns focused on education, healthcare, and community development. 
               Every contribution helps us reach more people in need.
             </p>
@@ -113,18 +115,18 @@ export default async function CampaignsPage() {
                   </div>
                   
                   <div className="flex gap-4">
-                    <a 
+                    <Link 
                       href={`/campaigns/${campaign.id}`}
                       className="flex-1 bg-white border-2 border-[#D4A71C] text-[#D4A71C] py-3 rounded-lg font-bold text-center hover:bg-[#D4A71C] hover:text-white transition-colors font-poppins"
                     >
                       View Details
-                    </a>
-                    <a 
+                    </Link>
+                    <Link 
                       href="/donate"
                       className="flex-1 bg-[#D4A71C] text-white py-3 rounded-lg font-bold text-center hover:bg-[#b89018] transition-colors font-poppins"
                     >
                       Donate Now
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>

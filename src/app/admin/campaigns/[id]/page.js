@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Calendar, MapPin, DollarSign, Image as ImageIcon, FileText, Edit } from 'lucide-react'
+import { ArrowLeft, Calendar, MapPin, IndianRupee, Image as ImageIcon, FileText, Edit } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
 import AdminApiService from '@/app/admin/services/admin-api'
 
@@ -190,16 +190,29 @@ export default function ViewCampaignPage() {
                 </div>
                 
                 <div className="flex items-start">
-                  <DollarSign className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <IndianRupee className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
                   <div className="ml-3">
                     <p className="text-sm font-medium text-gray-500">Funding</p>
                     <p className="text-sm text-gray-900">
-                      Target: ${campaign.amount?.toLocaleString() || 'N/A'}
+                      Target: ₹{campaign.amount?.toLocaleString('en-IN') || 'N/A'}
                     </p>
                     {campaign.raisedAmount && (
                       <p className="text-sm text-green-600">
-                        Raised: ${campaign.raisedAmount.toLocaleString()}
+                        Raised: ₹{campaign.raisedAmount.toLocaleString('en-IN')}
                       </p>
+                    )}
+                    {campaign.amount > 0 && (
+                      <div className="mt-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-green-500 h-2 rounded-full"
+                            style={{ width: `${Math.min(100, Math.round(((campaign.raisedAmount || 0) / campaign.amount) * 100))}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {Math.min(100, Math.round(((campaign.raisedAmount || 0) / campaign.amount) * 100))}% funded
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>

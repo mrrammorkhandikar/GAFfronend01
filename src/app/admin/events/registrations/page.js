@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Plus, Search, Filter, Calendar, User, Mail, Phone, X } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
@@ -21,7 +21,7 @@ export default function EventRegistrationsPage() {
   })
   const router = useRouter()
 
-  const fetchRegistrations = async (page = 1) => {
+  const fetchRegistrations = useCallback(async (page = 1) => {
     setLoading(true)
     setError('')
     
@@ -49,27 +49,26 @@ export default function EventRegistrationsPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const fetchEvents = async () => {
-    try {
-      const response = await AdminApiService.getEvents({ active: true })
-      if (response.success) {
-        setEvents(response.data)
-      }
-    } catch (err) {
-      console.error('Error fetching events:', err)
-    }
-  }
+  }, [pagination.itemsPerPage, selectedEvent])
 
   useEffect(() => {
-    fetchRegistrations()
+    const fetchEvents = async () => {
+      try {
+        const response = await AdminApiService.getEvents({ active: true })
+        if (response.success) {
+          setEvents(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching events:', err)
+      }
+    }
+
     fetchEvents()
   }, [])
 
   useEffect(() => {
     fetchRegistrations(1)
-  }, [selectedEvent])
+  }, [fetchRegistrations])
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this registration?')) {

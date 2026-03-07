@@ -59,9 +59,9 @@ export default function DonationsPage() {
     {
       key: 'amount',
       label: 'Amount',
-      render: (value, item) => (
+      render: (value) => (
         <div className="font-bold text-gray-900">
-          {item.currency} {value.toLocaleString()}
+          ₹{value.toLocaleString('en-IN')}
         </div>
       )
     },
@@ -164,10 +164,10 @@ export default function DonationsPage() {
                     </dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">
-                        ${donations
+                        ₹{donations
                           .filter(d => d.status === 'completed')
                           .reduce((sum, d) => sum + d.amount, 0)
-                          .toLocaleString()}
+                          .toLocaleString('en-IN')}
                       </div>
                     </dd>
                   </dl>

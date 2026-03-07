@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 const ACTION_IMAGE = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80';
 
@@ -11,10 +12,11 @@ const CallToAction = () => {
   return (
     <section className="relative w-full h-[700px] overflow-hidden">
       {/* Background Image and Dark Overlay */}
-      <img
+      <Image
         src={ACTION_IMAGE}
         alt="Happy children reaching out"
-        className="absolute inset-0 w-full h-full object-cover"
+        fill
+        className="object-cover"
       />
       <div className="absolute inset-0 bg-black bg-opacity-40"
       style={{opacity:"40%"}}></div>
@@ -37,7 +39,7 @@ const CallToAction = () => {
           </h1>
 
           <p className="text-lg mb-12 max-w-lg font-poppins">
-            Your contribution means a lot to us. It will change someone's life forever. Give them a reason to smile.
+            Your contribution means a lot to us. It will change someone&apos;s life forever. Give them a reason to smile.
           </p>
 
         </div>

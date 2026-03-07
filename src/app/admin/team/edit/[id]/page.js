@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Save, Upload, User, Briefcase, Mail, Phone, Link as LinkIcon } from 'lucide-react'
+import { ArrowLeft, Save, Upload, User, Briefcase, Mail, Phone, Link as LinkIcon, X, RefreshCw } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
 import AdminApiService from '@/app/admin/services/admin-api'
 
@@ -19,47 +19,45 @@ export default function EditTeamMemberPage() {
     isActive: true
   })
   const [image, setImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const fileInputRef = useRef(null)
   const router = useRouter()
   const params = useParams()
   const id = params.id
 
   useEffect(() => {
-    if (id) {
-      fetchMember()
-    }
+    if (id) fetchMember()
   }, [id])
 
   const fetchMember = async () => {
     setLoading(true)
     setError('')
-    
     try {
       const response = await AdminApiService.getTeamMember(id)
-      
       if (response.success) {
-        const memberData = response.data
-        setMember(memberData)
-        
-        // Populate form data
+        const d = response.data
+        setMember(d)
+        setImagePreview(d.imageUrl || null)
         setFormData({
-          name: memberData.name,
-          position: memberData.position,
-          bio: memberData.bio || '',
-          email: memberData.email || '',
-          phone: memberData.phone || '',
-          linkedinUrl: memberData.linkedinUrl || '',
-          twitterUrl: memberData.twitterUrl || '',
-          isActive: memberData.isActive
+          name: d.name || '',
+          position: d.position || '',
+          bio: d.bio || '',
+          email: d.email || '',
+          phone: d.phone || '',
+          linkedinUrl: d.linkedinUrl || '',
+          twitterUrl: d.twitterUrl || '',
+          isActive: d.isActive
         })
       } else {
         setError(response.message || 'Failed to fetch team member')
       }
     } catch (err) {
       setError('An error occurred while fetching team member')
-      console.error('Error fetching team member:', err)
+      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -67,59 +65,65 @@ export default function EditTeamMemberPage() {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (image?.preview) URL.revokeObjectURL(image.preview)
+    const preview = URL.createObjectURL(file)
+    setImage({ file, preview })
+  }
+
+  const removeNewImage = () => {
+    if (image?.preview) URL.revokeObjectURL(image.preview)
+    setImage(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const currentDisplayImage = image?.preview || imagePreview
+
   const validateForm = () => {
-    if (!formData.name.trim()) {
-      setError('Name is required')
-      return false
-    }
-    if (!formData.position.trim()) {
-      setError('Position is required')
-      return false
-    }
+    if (!formData.name.trim()) { setError('Name is required'); return false }
+    if (!formData.position.trim()) { setError('Position is required'); return false }
     return true
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    if (!validateForm()) {
-      return
-    }
-    
+    if (!validateForm()) return
+
     setSaving(true)
     setError('')
+    setSuccess(false)
 
     try {
-      const formDataObj = new FormData()
-      
-      // Add form fields
+      const fd = new FormData()
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== '' && value !== null) {
-          formDataObj.append(key, value)
-        }
+        fd.append(key, String(value))
       })
-
-      // Add image if selected
-      if (image) {
-        formDataObj.append('image', image)
+      if (image?.file) {
+        fd.append('image', image.file)
       }
 
-      const result = await AdminApiService.updateTeamMember(id, formDataObj)
-      
+      const result = await AdminApiService.updateTeamMember(id, fd)
       if (result.success) {
-        router.push('/admin/team')
+        setSuccess(true)
+        // Update member state and preview with returned data
+        const updated = result.data
+        setMember(updated)
+        if (updated.imageUrl) setImagePreview(updated.imageUrl)
+        if (image?.preview) URL.revokeObjectURL(image.preview)
+        setImage(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+        setTimeout(() => setSuccess(false), 3000)
       } else {
         setError(result.message || 'Failed to update team member')
       }
     } catch (err) {
       setError('An error occurred while updating the team member')
-      console.error('Error updating team member:', err)
+      console.error(err)
     } finally {
       setSaving(false)
     }
@@ -139,7 +143,8 @@ export default function EditTeamMemberPage() {
     return (
       <AdminLayout>
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="text-red-700">{error}</div>
+          <p className="text-red-700">{error}</p>
+          <button onClick={() => router.back()} className="mt-3 text-sm text-red-600 hover:underline">Go back</button>
         </div>
       </AdminLayout>
     )
@@ -148,6 +153,7 @@ export default function EditTeamMemberPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <button
@@ -159,141 +165,126 @@ export default function EditTeamMemberPage() {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Edit Team Member</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Update team member information
-              </p>
+              <p className="mt-1 text-sm text-gray-500">Update team member information and photo</p>
             </div>
           </div>
+          <button
+            onClick={() => router.push(`/admin/team/${id}`)}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            View Profile →
+          </button>
         </div>
 
+        {/* Alerts */}
         {error && (
-          <div className="rounded-md bg-red-50 p-4">
-            <div className="flex">
-              <div className="text-sm text-red-700">{error}</div>
-            </div>
+          <div className="rounded-md bg-red-50 border border-red-200 p-4 flex items-start gap-3">
+            <X className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="rounded-md bg-green-50 border border-green-200 p-4">
+            <p className="text-sm text-green-700 font-medium">✓ Team member updated successfully!</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Basic Information Column */}
-              <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left: Form Fields */}
+              <div className="lg:col-span-2 space-y-5">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="text-lg font-medium text-gray-900 flex items-center">
                     <User className="h-5 w-5 mr-2 text-blue-600" />
                     Personal Information
                   </h3>
                 </div>
-                
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    id="name"
-                    required
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                    placeholder="Enter full name"
-                  />
-                </div>
 
-                <div>
-                  <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">
-                    Position/Role *
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Briefcase className="h-4 w-4 text-gray-400" />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name *
+                    </label>
                     <input
-                      type="text"
-                      name="position"
-                      id="position"
-                      required
-                      value={formData.position}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                      placeholder="Job title or role"
+                      type="text" name="name" id="name" required
+                      value={formData.name} onChange={handleInputChange}
+                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                      placeholder="Enter full name"
                     />
+                  </div>
+
+                  <div>
+                    <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">
+                      Position / Role *
+                    </label>
+                    <div className="relative">
+                      <Briefcase className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text" name="position" id="position" required
+                        value={formData.position} onChange={handleInputChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        placeholder="Job title or role"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
-                    Bio/Description
+                    Bio / Description
                   </label>
                   <textarea
-                    name="bio"
-                    id="bio"
-                    rows={4}
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
+                    name="bio" id="bio" rows={4}
+                    value={formData.bio} onChange={handleInputChange}
+                    className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                     placeholder="Brief biography or description of role"
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-4 w-4 text-gray-400" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Address
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <input
+                        type="email" name="email" id="email"
+                        value={formData.email} onChange={handleInputChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        placeholder="email@example.com"
+                      />
                     </div>
-                    <input
-                      type="email"
-                      name="email"
-                      id="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                      placeholder="email@example.com"
-                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                      <input
+                        type="tel" name="phone" id="phone"
+                        value={formData.phone} onChange={handleInputChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                        placeholder="+91 98765 43210"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <input
-                      type="tel"
-                      name="phone"
-                      id="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label htmlFor="linkedinUrl" className="block text-sm font-medium text-gray-700 mb-1">
                       LinkedIn Profile
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <LinkIcon className="h-4 w-4 text-gray-400" />
-                      </div>
+                      <LinkIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                       <input
-                        type="url"
-                        name="linkedinUrl"
-                        id="linkedinUrl"
-                        value={formData.linkedinUrl}
-                        onChange={handleInputChange}
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
+                        type="url" name="linkedinUrl" id="linkedinUrl"
+                        value={formData.linkedinUrl} onChange={handleInputChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                         placeholder="https://linkedin.com/in/username"
                       />
                     </div>
@@ -301,163 +292,179 @@ export default function EditTeamMemberPage() {
 
                   <div>
                     <label htmlFor="twitterUrl" className="block text-sm font-medium text-gray-700 mb-1">
-                      Twitter/X Profile
+                      Twitter / X Profile
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <LinkIcon className="h-4 w-4 text-gray-400" />
-                      </div>
+                      <LinkIcon className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                       <input
-                        type="url"
-                        name="twitterUrl"
-                        id="twitterUrl"
-                        value={formData.twitterUrl}
-                        onChange={handleInputChange}
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
+                        type="url" name="twitterUrl" id="twitterUrl"
+                        value={formData.twitterUrl} onChange={handleInputChange}
+                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                         placeholder="https://twitter.com/username"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center">
+                <div className="flex items-center pt-2">
                   <input
-                    type="checkbox"
-                    name="isActive"
-                    id="isActive"
-                    checked={formData.isActive}
-                    onChange={handleInputChange}
+                    type="checkbox" name="isActive" id="isActive"
+                    checked={formData.isActive} onChange={handleInputChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
                   <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                    Active Team Member
+                    Active Team Member (visible on the website)
                   </label>
                 </div>
               </div>
 
-              {/* Image Upload Column */}
-              <div className="space-y-6">
+              {/* Right: Image + Preview */}
+              <div className="space-y-5">
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-medium text-gray-900">Profile Image</h3>
+                  <h3 className="text-lg font-medium text-gray-900">Profile Photo</h3>
+                  <p className="mt-1 text-sm text-gray-500">Upload or replace the member photo</p>
                 </div>
 
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-center w-full">
-                    <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        {image ? (
-                          <div className="relative">
-                            <img
-                              src={URL.createObjectURL(image)}
-                              alt="Preview"
-                              className="h-32 w-32 object-cover rounded-full"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                              <Upload className="w-8 h-8 text-white" />
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <Upload className="w-12 h-12 mb-4 text-gray-500" />
-                            <p className="mb-2 text-sm text-gray-500">
-                              <span className="font-semibold">Click to upload</span> or drag and drop
-                            </p>
-                            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-                          </>
+                {/* Image Upload Area */}
+                <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+                  {currentDisplayImage ? (
+                    <div className="relative">
+                      <img
+                        src={currentDisplayImage}
+                        alt="Profile"
+                        className="w-full h-56 object-cover"
+                      />
+                      {image && (
+                        <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full font-medium">
+                          New photo
+                        </div>
+                      )}
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <label
+                          htmlFor="photo-upload"
+                          className="bg-white text-gray-700 text-xs px-3 py-1.5 rounded-full shadow cursor-pointer hover:bg-gray-50 flex items-center gap-1 font-medium"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          {image ? 'Change' : 'Replace'}
+                        </label>
+                        {image && (
+                          <button
+                            type="button"
+                            onClick={removeNewImage}
+                            className="bg-red-500 text-white text-xs px-3 py-1.5 rounded-full shadow hover:bg-red-600 flex items-center gap-1 font-medium"
+                          >
+                            <X className="h-3 w-3" />
+                            Undo
+                          </button>
                         )}
                       </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => setImage(e.target.files[0])}
-                      />
-                    </label>
-                  </div>
-                  
-                  {image && (
-                    <div className="mt-4 text-center">
-                      <p className="text-sm text-gray-600 mb-2">
-                        Selected: {image.name}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setImage(null)}
-                        className="text-sm text-red-600 hover:text-red-800"
-                      >
-                        Remove image
-                      </button>
                     </div>
+                  ) : (
+                    <label
+                      htmlFor="photo-upload"
+                      className="flex flex-col items-center justify-center h-56 cursor-pointer hover:bg-gray-50 transition-colors"
+                    >
+                      <Upload className="w-10 h-10 mb-3 text-gray-400" />
+                      <p className="text-sm text-gray-600 font-medium">Click to upload photo</p>
+                      <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</p>
+                    </label>
                   )}
-                  
-                  <div className="mt-4 text-xs text-gray-500">
-                    <p>• Recommended size: 400x400 pixels</p>
-                    <p>• Square aspect ratio works best</p>
-                    <p>• Max file size: 5MB</p>
-                  </div>
+                  <input
+                    ref={fileInputRef}
+                    id="photo-upload"
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  {!currentDisplayImage && (
+                    <div className="p-3 text-center text-xs text-gray-400">Square images work best · 400×400px recommended</div>
+                  )}
                 </div>
 
-                {/* Preview Card */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Preview</h4>
-                  <div className="text-center">
-                    <div className="mx-auto h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center mb-3">
-                      {image ? (
+                {image && (
+                  <p className="text-xs text-gray-500 text-center">
+                    Selected: <span className="font-medium">{image.file.name}</span>
+                  </p>
+                )}
+
+                {/* Live Preview Card */}
+                <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-4 pb-2 border-b border-gray-100">
+                    Live Preview
+                  </h4>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 h-16 w-16 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center ring-2 ring-gray-200">
+                      {currentDisplayImage ? (
                         <img
-                          src={URL.createObjectURL(image)}
+                          src={currentDisplayImage}
                           alt="Preview"
-                          className="h-20 w-20 rounded-full object-cover"
-                        />
-                      ) : member?.imageUrl ? (
-                        <img
-                          src={member.imageUrl}
-                          alt="Current"
-                          className="h-20 w-20 rounded-full object-cover"
+                          className="h-full w-full object-cover"
                         />
                       ) : (
                         <User className="h-8 w-8 text-gray-400" />
                       )}
                     </div>
-                    <h3 className="text-sm font-medium text-gray-900">
-                      {formData.name || 'Full Name'}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {formData.position || 'Position'}
-                    </p>
-                    {formData.email && (
-                      <p className="text-xs text-blue-600 mt-1">
-                        {formData.email}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">
+                        {formData.name || <span className="text-gray-400 font-normal">Full Name</span>}
                       </p>
-                    )}
-                    <div className="flex justify-center space-x-2 mt-2">
-                      {formData.linkedinUrl && (
-                        <LinkIcon className="h-4 w-4 text-gray-400 hover:text-blue-600" />
-                      )}
-                      {formData.twitterUrl && (
-                        <LinkIcon className="h-4 w-4 text-gray-400 hover:text-blue-400" />
+                      <p className="text-sm text-gray-500 truncate">
+                        {formData.position || <span className="italic">Position</span>}
+                      </p>
+                      {formData.email && (
+                        <p className="text-xs text-blue-600 truncate mt-0.5">{formData.email}</p>
                       )}
                     </div>
+                  </div>
+
+                  {formData.bio && (
+                    <p className="mt-3 text-xs text-gray-600 line-clamp-3 border-t border-gray-100 pt-3">
+                      {formData.bio}
+                    </p>
+                  )}
+
+                  <div className="mt-3 flex items-center gap-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                      formData.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {formData.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                    {formData.linkedinUrl && (
+                      <span className="text-xs text-gray-400">LinkedIn ✓</span>
+                    )}
+                    {formData.twitterUrl && (
+                      <span className="text-xs text-gray-400">Twitter ✓</span>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="px-4 py-3 bg-gray-50 text-right sm:px-6 border-t border-gray-200">
+          {/* Submit Bar */}
+          <div className="px-4 py-4 bg-gray-50 flex items-center justify-between sm:px-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => router.push('/admin/team')}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center py-2.5 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Updating Member...
+                  Saving Changes...
                 </>
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  Update Member
+                  Save Changes
                 </>
               )}
             </button>

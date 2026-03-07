@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 // Define the paths to your custom icon images
 const ICON_PATHS = {
@@ -13,14 +14,15 @@ const ICON_PATHS = {
 const Card = ({ iconPath, title, description, buttonText, buttonLink }) => (
   <div className="bg-white p-6 md:p-10 border border-gray-100 shadow-md transition-shadow duration-300 hover:shadow-xl rounded-lg flex flex-col items-center text-center max-w-sm mx-auto h-full">
     {/* Icon Container - Using <img> for the custom PNGs */}
-    <div className="mb-6">
+    <div className="mb-6 relative w-16 h-16 sm:w-20 sm:h-20 mx-auto">
       {/* The width and height are set to match the large size shown in the image.
         We use object-contain to ensure the image scales properly if the container size is tweaked.
       */}
-      <img 
+      <Image 
         src={iconPath}
         alt={`${title} icon`}
-        className="w-16 h-16 sm:w-20 sm:h-20 object-contain mx-auto"
+        fill
+        className="object-contain"
       />
     </div>
 
@@ -86,7 +88,7 @@ const GetInvolved = () => {
             </p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-800 leading-tight font-playfair"
             style={{ fontFamily: "'Playfair Display', serif" }}>
-              Let's Make a Difference Today!
+              Let&apos;s Make a Difference Today!
             </h2>
           </div>
 

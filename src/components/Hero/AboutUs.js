@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 // Image path for the main about us image
-const ABOUT_US_IMAGE = 'images/Aboutus/Aboutushome.jpg';
+const ABOUT_US_IMAGE = '/images/Aboutus/Aboutushome.jpg';
 
 const AboutUs = () => {
   return (
@@ -18,9 +19,11 @@ const AboutUs = () => {
             {/* Left Column: Image and Statistics Cards */}
             <div className="relative">
               {/* Main Image */}
-              <img
+              <Image
                 src={ABOUT_US_IMAGE}
                 alt="Group of happy children"
+                width={600}
+                height={400}
                 className="rounded-lg shadow-xl w-full h-auto object-cover"
               />
 

@@ -115,6 +115,15 @@ class SiteApiService {
     return this.apiCall(`/team/${id}`)
   }
 
+  // Partners
+  static async getAllPartners() {
+    return this.apiCall('/partners/public/list/all')
+  }
+
+  static async getPartnerBySlug(slug) {
+    return this.apiCall(`/partners/public/${slug}`)
+  }
+
   // Careers
   static async getActiveCareers(limit = 4) {
     return this.apiCall('/careers/public')

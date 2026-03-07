@@ -78,6 +78,8 @@ const CampaignDetails = ({ params }) => {
             about: content?.about || [],
             impactGallery: content?.impactGallery || [],
             keyFocusAreas: content?.keyFocusAreas || [],
+            impactNumbers: content?.impactNumbers || [],
+            testimonials: content?.testimonials || [],
             isCompleted: response.data.amount > 0 && response.data.raisedAmount >= response.data.amount
           };
           
@@ -216,6 +218,39 @@ const CampaignDetails = ({ params }) => {
                       <div key={index} className="flex items-start">
                         <div className="w-2 h-2 bg-[#FFD700] rounded-full mt-2 mr-3 flex-shrink-0"></div>
                         <p className="text-gray-700 font-poppins">{area}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Impact Numbers */}
+              {campaign.impactNumbers && campaign.impactNumbers.length > 0 && (
+                <div className="bg-[#6D190D] rounded-xl p-8 mb-8">
+                  <h2 className="text-2xl font-bold text-white mb-6 font-playfair">Our Impact</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {campaign.impactNumbers.map((stat, index) => (
+                      <div key={index} className="text-center">
+                        <div className="text-3xl font-bold text-[#FFD700] font-playfair mb-1">{stat.value}</div>
+                        <div className="text-sm text-white/80 font-poppins">{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Testimonials */}
+              {campaign.testimonials && campaign.testimonials.length > 0 && (
+                <div className="bg-white rounded-xl shadow-md p-8 mb-8">
+                  <h2 className="text-2xl font-bold text-[#222222] mb-6 font-playfair">What People Say</h2>
+                  <div className="space-y-6">
+                    {campaign.testimonials.map((t, index) => (
+                      <div key={index} className="bg-[#fcf9e3] rounded-lg p-6 border-l-4 border-[#FFD700]">
+                        <p className="text-gray-700 italic font-poppins mb-3">"{t.quote}"</p>
+                        <div>
+                          <span className="font-semibold text-[#222222] font-poppins">{t.author}</span>
+                          {t.role && <span className="text-gray-500 text-sm font-poppins ml-2">— {t.role}</span>}
+                        </div>
                       </div>
                     ))}
                   </div>

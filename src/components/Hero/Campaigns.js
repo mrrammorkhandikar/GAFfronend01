@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import CampaignCard from './CampaignCard';
 import SiteApiService from '@/app/services/site-api';
 
@@ -88,12 +89,12 @@ const Campaigns = () => {
                 Loading Campaigns...
               </h2>
             </div>
-            <a
+            <Link
               href="/campaigns"
               className="mt-6 md:mt-0 inline-block py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg font-poppins"
             >
               View All Campaigns
-            </a>
+            </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 justify-center items-center pl-[15px]"
           style={{paddingLeft: "40px"}}>
@@ -126,12 +127,12 @@ const Campaigns = () => {
                 Donate To Support Holistic Healthcare<br></br> Awareness In India
               </h2>
             </div>
-            <a
+            <Link
               href="/campaigns"
               className="mt-6 md:mt-0 inline-block py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg font-poppins"
             >
               View All Campaigns
-            </a>
+            </Link>
           </div>
           <div className="text-center py-12">
             <p className="text-gray-600 font-poppins">
@@ -167,12 +168,12 @@ const Campaigns = () => {
           </div>
           
           {/* View All Campaigns Button */}
-          <a
+          <Link
             href="/campaigns" // Placeholder link
             className="mt-6 md:mt-0 inline-block py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg font-poppins"
           >
             View All Campaigns
-          </a>
+          </Link>
         </div>
 
         {/* Campaigns Grid */}

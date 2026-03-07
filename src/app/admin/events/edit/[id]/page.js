@@ -20,9 +20,12 @@ export default function EditEventPage() {
   const [content, setContent] = useState({
     about: [''],
     journey: [{ title: '', description: '', imageUrl: '' }],
-    keyAchievements: Array(8).fill('')
+    keyAchievements: Array(8).fill(''),
+    speakers: [{ name: '', role: '' }],
+    agenda: [{ time: '', title: '', description: '' }]
   })
   const [image, setImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -32,62 +35,68 @@ export default function EditEventPage() {
   const id = params.id
 
   useEffect(() => {
+    const fetchEvent = async () => {
+      setLoading(true)
+      setError('')
+      
+      try {
+        const response = await AdminApiService.getEvent(id)
+        
+        if (response.success) {
+          const eventData = response.data
+          setEvent(eventData)
+          if (eventData.imageUrl) setImagePreview(eventData.imageUrl)
+          
+          // Populate form data
+          setFormData({
+            title: eventData.title,
+            slug: eventData.slug,
+            description: eventData.description,
+            eventDate: eventData.eventDate ? new Date(eventData.eventDate).toISOString().slice(0, 16) : '',
+            location: eventData.location,
+            campaignId: eventData.campaignId || '',
+            isActive: eventData.isActive
+          })
+          
+          // Populate content
+          const eventContent = eventData.content || {}
+          const existingAchievements = eventContent.keyAchievements || []
+          setContent({
+            about: eventContent.about?.length ? eventContent.about : [''],
+            journey: eventContent.journey?.length ? eventContent.journey : [{ title: '', description: '', imageUrl: '' }],
+            keyAchievements: existingAchievements.length >= 8
+              ? existingAchievements
+              : [...existingAchievements, ...Array(Math.max(0, 8 - existingAchievements.length)).fill('')],
+            speakers: eventContent.speakers?.length ? eventContent.speakers : [{ name: '', role: '' }],
+            agenda: eventContent.agenda?.length ? eventContent.agenda : [{ time: '', title: '', description: '' }]
+          })
+        } else {
+          setError(response.message || 'Failed to fetch event')
+        }
+      } catch (err) {
+        setError('An error occurred while fetching event')
+        console.error('Error fetching event:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    const fetchCampaigns = async () => {
+      try {
+        const response = await AdminApiService.getCampaigns({ active: true })
+        if (response.success) {
+          setCampaigns(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching campaigns:', err)
+      }
+    }
+
     if (id) {
       fetchEvent()
       fetchCampaigns()
     }
   }, [id])
-
-  const fetchEvent = async () => {
-    setLoading(true)
-    setError('')
-    
-    try {
-      const response = await AdminApiService.getEvent(id)
-      
-      if (response.success) {
-        const eventData = response.data
-        setEvent(eventData)
-        
-        // Populate form data
-        setFormData({
-          title: eventData.title,
-          slug: eventData.slug,
-          description: eventData.description,
-          eventDate: eventData.eventDate ? new Date(eventData.eventDate).toISOString().slice(0, 16) : '',
-          location: eventData.location,
-          campaignId: eventData.campaignId || '',
-          isActive: eventData.isActive
-        })
-        
-        // Populate content
-        const eventContent = eventData.content || {}
-        setContent({
-          about: eventContent.about || [''],
-          journey: eventContent.journey || [{ title: '', description: '', imageUrl: '' }],
-          keyAchievements: eventContent.keyAchievements || Array(8).fill('')
-        })
-      } else {
-        setError(response.message || 'Failed to fetch event')
-      }
-    } catch (err) {
-      setError('An error occurred while fetching event')
-      console.error('Error fetching event:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchCampaigns = async () => {
-    try {
-      const response = await AdminApiService.getCampaigns({ active: true })
-      if (response.success) {
-        setCampaigns(response.data)
-      }
-    } catch (err) {
-      console.error('Error fetching campaigns:', err)
-    }
-  }
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -187,7 +196,16 @@ export default function EditEventPage() {
           description: item.description,
           imageUrl: item.imageUrl || undefined
         })),
-        keyAchievements: content.keyAchievements.filter(item => item.trim() !== '')
+        keyAchievements: content.keyAchievements.filter(item => item.trim() !== ''),
+        speakers: content.speakers.filter(s => s.name.trim() !== '').map(s => ({
+          name: s.name,
+          role: s.role
+        })),
+        agenda: content.agenda.filter(a => a.title.trim() !== '').map(a => ({
+          time: a.time,
+          title: a.title,
+          description: a.description
+        }))
       }
       formDataObj.append('content', JSON.stringify(contentData))
 
@@ -394,7 +412,17 @@ export default function EditEventPage() {
 
                 {/* About Section */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-md font-medium text-gray-900 mb-4">About This Event</h4>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-900">About This Event</h4>
+                    <button
+                      type="button"
+                      onClick={() => setContent(prev => ({ ...prev, about: [...prev.about, ''] }))}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Paragraph
+                    </button>
+                  </div>
                   <div className="space-y-3">
                     {content.about.map((paragraph, index) => (
                       <div key={index} className="flex">
@@ -405,6 +433,15 @@ export default function EditEventPage() {
                           className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
                           placeholder={`Paragraph ${index + 1} content`}
                         />
+                        {content.about.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setContent(prev => ({ ...prev, about: prev.about.filter((_, i) => i !== index) }))}
+                            className="ml-2 px-2 text-red-600 hover:text-red-800 self-start mt-2"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -468,7 +505,7 @@ export default function EditEventPage() {
 
                 {/* Key Achievements Section */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Key Achievements (Max 8)</h4>
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Key Achievements / Highlights (Max 8)</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {content.keyAchievements.map((achievement, index) => (
                       <div key={index} className="flex">
@@ -477,7 +514,107 @@ export default function EditEventPage() {
                           value={achievement}
                           onChange={(e) => handleContentChange('keyAchievements', index, null, e.target.value)}
                           className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                          placeholder={`Achievement ${index + 1}`}
+                          placeholder={`Achievement / highlight ${index + 1}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Speakers Section */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-900">Speakers / Organizers</h4>
+                    <button
+                      type="button"
+                      onClick={() => setContent(prev => ({ ...prev, speakers: [...prev.speakers, { name: '', role: '' }] }))}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Speaker
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {content.speakers.map((speaker, index) => (
+                      <div key={index} className="flex gap-3 items-start">
+                        <input
+                          type="text"
+                          value={speaker.name}
+                          onChange={(e) => handleContentChange('speakers', index, 'name', e.target.value)}
+                          className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
+                          placeholder="Full name"
+                        />
+                        <input
+                          type="text"
+                          value={speaker.role}
+                          onChange={(e) => handleContentChange('speakers', index, 'role', e.target.value)}
+                          className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
+                          placeholder="Role / Title"
+                        />
+                        {content.speakers.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setContent(prev => ({ ...prev, speakers: prev.speakers.filter((_, i) => i !== index) }))}
+                            className="text-red-600 hover:text-red-800 mt-2"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Agenda Section */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-900">Event Agenda / Schedule</h4>
+                    <button
+                      type="button"
+                      onClick={() => setContent(prev => ({ ...prev, agenda: [...prev.agenda, { time: '', title: '', description: '' }] }))}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Agenda Item
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {content.agenda.map((item, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <h5 className="text-sm font-medium text-gray-700">Agenda Item {index + 1}</h5>
+                          {content.agenda.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setContent(prev => ({ ...prev, agenda: prev.agenda.filter((_, i) => i !== index) }))}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <input
+                            type="text"
+                            value={item.time}
+                            onChange={(e) => handleContentChange('agenda', index, 'time', e.target.value)}
+                            className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                            placeholder="Time (e.g. 10:00 AM)"
+                          />
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => handleContentChange('agenda', index, 'title', e.target.value)}
+                            className="col-span-2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                            placeholder="Activity title"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) => handleContentChange('agenda', index, 'description', e.target.value)}
+                          className="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-900"
+                          placeholder="Brief description (optional)"
                         />
                       </div>
                     ))}
@@ -487,28 +624,33 @@ export default function EditEventPage() {
                 {/* Featured Image */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <h4 className="text-md font-medium text-gray-900 mb-4">Featured Image</h4>
-                  <div className="flex items-center">
-                    <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-8 h-8 mb-4 text-gray-500" />
-                        <p className="mb-2 text-sm text-gray-500">
-                          <span className="font-semibold">Click to upload</span> or drag and drop
-                        </p>
-                        <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
-                      </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => setImage(e.target.files[0])}
-                      />
-                    </label>
-                  </div>
-                  {image && (
-                    <p className="mt-2 text-sm text-gray-500">
-                      Selected: {image.name}
-                    </p>
+                  {imagePreview && !image && (
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-500 mb-1">Current image:</p>
+                      <img src={imagePreview} alt="Current featured" className="w-full h-40 object-cover rounded-lg" />
+                    </div>
                   )}
+                  {image && (
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-500 mb-1">New image preview:</p>
+                      <img src={URL.createObjectURL(image)} alt="New featured" className="w-full h-40 object-cover rounded-lg" />
+                    </div>
+                  )}
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                    <div className="flex flex-col items-center justify-center pt-3 pb-3">
+                      <Upload className="w-6 h-6 mb-2 text-gray-500" />
+                      <p className="text-sm text-gray-500">
+                        <span className="font-semibold">{imagePreview ? 'Replace image' : 'Click to upload'}</span>
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB</p>
+                    </div>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => setImage(e.target.files[0])}
+                    />
+                  </label>
                 </div>
               </div>
             </div>

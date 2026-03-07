@@ -22,16 +22,17 @@ const EventsClient = ({ initialEvents }) => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="py-20 md:py-32 bg-gradient-to-br from-[#fcf9e3] to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-20 md:py-32 min-h-[320px] bg-cover bg-center" style={{ backgroundImage: "url('/images/campains/helpforpoorfamilies.jpg')" }}>
+        <div className="absolute inset-0 bg-black/50" />
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="font-poppins uppercase text-sm font-semibold tracking-widest text-[#D4A71C] mb-2">
+            <p className="font-poppins uppercase text-sm font-semibold tracking-widest text-[#FFD700] mb-2">
               Get Involved
             </p>
-            <h1 className="text-4xl md:text-5xl font-black text-[#222222] mb-6 font-playfair">
+            <h1 className="text-4xl md:text-5xl font-black text-white mb-6 font-playfair">
               Upcoming Events & Activities
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-poppins">
+            <p className="text-xl text-gray-100 max-w-3xl mx-auto font-poppins">
               Join us in our mission to create positive change. Participate in our events, 
               workshops, and community outreach programs.
             </p>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import AdminLayout from '../components/AdminLayout.js'
 import DataTable from '../components/DataTable.js'
 import AdminApiService from '../services/admin-api.js'
@@ -65,10 +66,12 @@ export default function TeamPage() {
       render: (value, item) => (
         <div className="flex items-center">
           {item.imageUrl ? (
-            <img 
-              src={item.imageUrl} 
+            <Image
+              src={item.imageUrl}
               alt={value}
-              className="h-10 w-10 rounded-full object-cover mr-3"
+              width={40}
+              height={40}
+              className="rounded-full object-cover mr-3"
             />
           ) : (
             <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
@@ -126,7 +129,7 @@ export default function TeamPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Team Members</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Manage your organization's team members
+              Manage your organization&apos;s team members
             </p>
           </div>
         </div>

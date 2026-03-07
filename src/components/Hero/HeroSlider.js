@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import Image from 'next/image';
 
 const logos = [
   { src: "/images/HeroLogo/bosa-charity-img16.png" },
@@ -32,10 +33,12 @@ const HeroSlider = () => {
               key={i}
               className="flex items-center justify-center bg-[#FFFBEF] border border-gray-200 rounded-xl shadow-sm w-80 h-40"
             >
-              <img
+              <Image
                 src={logo.src}
                 alt={`logo-${i}`}
-                className="w-56 h-28 object-contain opacity-80"
+                width={224}
+                height={112}
+                className="object-contain opacity-80"
               />
             </div>
           ))}

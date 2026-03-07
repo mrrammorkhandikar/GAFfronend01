@@ -23,53 +23,53 @@ export default function EditVolunteerOpportunityPage() {
   const id = params.id
 
   useEffect(() => {
+    const fetchOpportunity = async () => {
+      setLoading(true)
+      setError('')
+      
+      try {
+        const response = await AdminApiService.getVolunteerOpportunity(id)
+        
+        if (response.success) {
+          const opportunityData = response.data
+          setOpportunity(opportunityData)
+          
+          // Populate form data
+          setFormData({
+            title: opportunityData.title,
+            description: opportunityData.description,
+            isActive: opportunityData.isActive
+          })
+          
+          // Parse requirements and benefits from JSON
+          try {
+            const parsedRequirements = JSON.parse(opportunityData.requirements || '[]')
+            setRequirements(parsedRequirements.length > 0 ? parsedRequirements : [''])
+          } catch (e) {
+            setRequirements([''])
+          }
+          
+          try {
+            const parsedBenefits = JSON.parse(opportunityData.benefits || '[]')
+            setBenefits(parsedBenefits.length > 0 ? parsedBenefits : [''])
+          } catch (e) {
+            setBenefits([''])
+          }
+        } else {
+          setError(response.message || 'Failed to fetch opportunity')
+        }
+      } catch (err) {
+        setError('An error occurred while fetching opportunity')
+        console.error('Error fetching opportunity:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (id) {
       fetchOpportunity()
     }
   }, [id])
-
-  const fetchOpportunity = async () => {
-    setLoading(true)
-    setError('')
-    
-    try {
-      const response = await AdminApiService.getVolunteerOpportunity(id)
-      
-      if (response.success) {
-        const opportunityData = response.data
-        setOpportunity(opportunityData)
-        
-        // Populate form data
-        setFormData({
-          title: opportunityData.title,
-          description: opportunityData.description,
-          isActive: opportunityData.isActive
-        })
-        
-        // Parse requirements and benefits from JSON
-        try {
-          const parsedRequirements = JSON.parse(opportunityData.requirements || '[]')
-          setRequirements(parsedRequirements.length > 0 ? parsedRequirements : [''])
-        } catch (e) {
-          setRequirements([''])
-        }
-        
-        try {
-          const parsedBenefits = JSON.parse(opportunityData.benefits || '[]')
-          setBenefits(parsedBenefits.length > 0 ? parsedBenefits : [''])
-        } catch (e) {
-          setBenefits([''])
-        }
-      } else {
-        setError(response.message || 'Failed to fetch opportunity')
-      }
-    } catch (err) {
-      setError('An error occurred while fetching opportunity')
-      console.error('Error fetching opportunity:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target

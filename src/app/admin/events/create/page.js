@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Upload, Calendar, MapPin, FileText, Plus, X } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
@@ -19,7 +19,9 @@ export default function CreateEventPage() {
   const [content, setContent] = useState({
     about: [''],
     journey: [{ title: '', description: '', imageUrl: '' }],
-    keyAchievements: Array(8).fill('')
+    keyAchievements: Array(8).fill(''),
+    speakers: [{ name: '', role: '' }],
+    agenda: [{ time: '', title: '', description: '' }]
   })
   const [image, setImage] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -28,10 +30,10 @@ export default function CreateEventPage() {
   const router = useRouter()
 
   // Fetch campaigns for dropdown
-  useState(() => {
+  useEffect(() => {
     const fetchCampaigns = async () => {
       try {
-        const response = await AdminApiService.getCampaigns({ active: true })
+        const response = await AdminApiService.getCampaigns({ limit: 100 })
         if (response.success) {
           setCampaigns(response.data)
         }
@@ -140,7 +142,16 @@ export default function CreateEventPage() {
           description: item.description,
           imageUrl: item.imageUrl || undefined
         })),
-        keyAchievements: content.keyAchievements.filter(item => item.trim() !== '')
+        keyAchievements: content.keyAchievements.filter(item => item.trim() !== ''),
+        speakers: content.speakers.filter(s => s.name.trim() !== '').map(s => ({
+          name: s.name,
+          role: s.role
+        })),
+        agenda: content.agenda.filter(a => a.title.trim() !== '').map(a => ({
+          time: a.time,
+          title: a.title,
+          description: a.description
+        }))
       }
       formDataObj.append('content', JSON.stringify(contentData))
 
@@ -327,7 +338,17 @@ export default function CreateEventPage() {
 
                 {/* About Section */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-md font-medium text-gray-900 mb-4">About This Event</h4>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-900">About This Event</h4>
+                    <button
+                      type="button"
+                      onClick={() => setContent(prev => ({ ...prev, about: [...prev.about, ''] }))}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Paragraph
+                    </button>
+                  </div>
                   <div className="space-y-3">
                     {content.about.map((paragraph, index) => (
                       <div key={index} className="flex">
@@ -338,6 +359,15 @@ export default function CreateEventPage() {
                           className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           placeholder={`Paragraph ${index + 1} content`}
                         />
+                        {content.about.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setContent(prev => ({ ...prev, about: prev.about.filter((_, i) => i !== index) }))}
+                            className="ml-2 px-2 text-red-600 hover:text-red-800 self-start mt-2"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -401,7 +431,7 @@ export default function CreateEventPage() {
 
                 {/* Key Achievements Section */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Key Achievements (Max 8)</h4>
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Key Achievements / Highlights (Max 8)</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {content.keyAchievements.map((achievement, index) => (
                       <div key={index} className="flex">
@@ -410,7 +440,107 @@ export default function CreateEventPage() {
                           value={achievement}
                           onChange={(e) => handleContentChange('keyAchievements', index, null, e.target.value)}
                           className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder={`Achievement ${index + 1}`}
+                          placeholder={`Achievement / highlight ${index + 1}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Speakers Section */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-900">Speakers / Organizers</h4>
+                    <button
+                      type="button"
+                      onClick={() => setContent(prev => ({ ...prev, speakers: [...prev.speakers, { name: '', role: '' }] }))}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Speaker
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {content.speakers.map((speaker, index) => (
+                      <div key={index} className="flex gap-3 items-start">
+                        <input
+                          type="text"
+                          value={speaker.name}
+                          onChange={(e) => handleContentChange('speakers', index, 'name', e.target.value)}
+                          className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Full name"
+                        />
+                        <input
+                          type="text"
+                          value={speaker.role}
+                          onChange={(e) => handleContentChange('speakers', index, 'role', e.target.value)}
+                          className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Role / Title"
+                        />
+                        {content.speakers.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setContent(prev => ({ ...prev, speakers: prev.speakers.filter((_, i) => i !== index) }))}
+                            className="text-red-600 hover:text-red-800 mt-2"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Agenda Section */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-900">Event Agenda / Schedule</h4>
+                    <button
+                      type="button"
+                      onClick={() => setContent(prev => ({ ...prev, agenda: [...prev.agenda, { time: '', title: '', description: '' }] }))}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Agenda Item
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {content.agenda.map((item, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <h5 className="text-sm font-medium text-gray-700">Agenda Item {index + 1}</h5>
+                          {content.agenda.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setContent(prev => ({ ...prev, agenda: prev.agenda.filter((_, i) => i !== index) }))}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <input
+                            type="text"
+                            value={item.time}
+                            onChange={(e) => handleContentChange('agenda', index, 'time', e.target.value)}
+                            className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            placeholder="Time (e.g. 10:00 AM)"
+                          />
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => handleContentChange('agenda', index, 'title', e.target.value)}
+                            className="col-span-2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            placeholder="Activity title"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={item.description}
+                          onChange={(e) => handleContentChange('agenda', index, 'description', e.target.value)}
+                          className="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          placeholder="Brief description (optional)"
                         />
                       </div>
                     ))}

@@ -15,30 +15,30 @@ export default function ViewVolunteerOpportunityPage() {
   const id = params.id
 
   useEffect(() => {
+    const fetchOpportunity = async () => {
+      setLoading(true)
+      setError('')
+      
+      try {
+        const response = await AdminApiService.getVolunteerOpportunity(id)
+        
+        if (response.success) {
+          setOpportunity(response.data)
+        } else {
+          setError(response.message || 'Failed to fetch opportunity')
+        }
+      } catch (err) {
+        setError('An error occurred while fetching opportunity')
+        console.error('Error fetching opportunity:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (id) {
       fetchOpportunity()
     }
   }, [id])
-
-  const fetchOpportunity = async () => {
-    setLoading(true)
-    setError('')
-    
-    try {
-      const response = await AdminApiService.getVolunteerOpportunity(id)
-      
-      if (response.success) {
-        setOpportunity(response.data)
-      } else {
-        setError(response.message || 'Failed to fetch opportunity')
-      }
-    } catch (err) {
-      setError('An error occurred while fetching opportunity')
-      console.error('Error fetching opportunity:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   if (loading) {
     return (

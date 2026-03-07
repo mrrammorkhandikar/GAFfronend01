@@ -153,6 +153,15 @@ export default function AdminLayout({ children }) {
       ]
     },
     {
+      name: 'Partners',
+      href: '/admin/partners',
+      icon: Users,
+      submenu: [
+        { name: 'All Partners', href: '/admin/partners' },
+        { name: 'Add Partner', href: '/admin/partners/create' }
+      ]
+    },
+    {
       name: 'Donations',
       href: '/admin/donations',
       icon: CreditCard

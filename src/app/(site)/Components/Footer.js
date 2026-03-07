@@ -1,6 +1,7 @@
 'use client';
 
 import React from "react";
+import Link from "next/link";
 import { Mail, Facebook, Instagram } from "lucide-react";
 
 const Footer = () => {
@@ -53,10 +54,10 @@ const Footer = () => {
           </a>
         </div>
         <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 mb-4">
-          <a href="/about" className="hover:text-yellow-600 transition-colors px-2 py-1 font-poppins">About Us</a>
-          <a href="/campaigns" className="hover:text-yellow-600 transition-colors px-2 py-1 font-poppins">Campaigns</a>
-          <a href="/events" className="hover:text-yellow-600 transition-colors px-2 py-1 font-poppins">Events</a>
-          <a href="/careers" className="hover:text-yellow-600 transition-colors px-2 py-1 font-poppins">Careers</a>
+          <Link href="/about" className="hover:text-yellow-600 transition-colors px-2 py-1 font-poppins">About Us</Link>
+          <Link href="/campaigns" className="hover:text-yellow-600 transition-colors px-2 py-1 font-poppins">Campaigns</Link>
+          <Link href="/events" className="hover:text-yellow-600 transition-colors px-2 py-1 font-poppins">Events</Link>
+          <Link href="/careers" className="hover:text-yellow-600 transition-colors px-2 py-1 font-poppins">Careers</Link>
         </div>
         <p className="text-sm text-gray-600 font-poppins">
           © 2024 Guru Akanksha Foundation. All rights reserved.

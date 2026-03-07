@@ -2,23 +2,30 @@
 
 import React from 'react';
 
+import Link from 'next/link';
+import Image from 'next/image';
+
 const HeroSection = () => {
   return (
     <div className="relative w-full h-screen">
       {/* Background Image */}
-      <img
+      <Image
         src="/images/home-hero-ba-image.jpg"
         alt="Guru Akanksha Foundation Background"
-        className="absolute inset-0 w-full h-full object-cover"
+        fill
+        className="object-cover"
+        priority
       />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
         {/* Logo */}
-        <img
+        <Image
           src="/images/GAF_Website_logo-removebg.png"
           alt="Guru Akanksha Foundation Logo"
-          className="w-60 md:w-72 mb-8"
+          width={300}
+          height={100}
+          className="w-60 md:w-72 mb-8 h-auto"
         />
 
         {/* Heading */}
@@ -28,7 +35,7 @@ const HeroSection = () => {
 
         <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 font-playfair"
         style={{ fontFamily: "'Playfair Display', serif" }}>
-          let's spread holistic<br />healthcare together
+          let&apos;s spread holistic<br />healthcare together
         </h1>
 
         <p className="text-lg md:text-xl mb-10 font-poppins">
@@ -37,18 +44,18 @@ const HeroSection = () => {
 
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
-          <a 
+          <Link 
             href="/donate"
             className="bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full text-lg hover:bg-yellow-600 transition-all font-poppins inline-block text-center"
           >
             Donate Funds
-          </a>
-          <a 
+          </Link>
+          <Link 
             href="/campaigns" 
             className="border-2 border-yellow-500 text-yellow-500 font-semibold px-8 py-3 rounded-full text-lg hover:bg-yellow-500 hover:text-black transition-all font-poppins inline-block text-center"
           >
             Campaigns
-          </a>
+          </Link>
         </div>
       </div>
     </div>

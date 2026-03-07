@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowLeft, Calendar, User, Mail, Phone, Link, Edit } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
 import AdminApiService from '@/app/admin/services/admin-api'
@@ -15,30 +16,30 @@ export default function ViewTeamMemberPage() {
   const id = params.id
 
   useEffect(() => {
+    const fetchMember = async () => {
+      setLoading(true)
+      setError('')
+      
+      try {
+        const response = await AdminApiService.getTeamMember(id)
+        
+        if (response.success) {
+          setMember(response.data)
+        } else {
+          setError(response.message || 'Failed to fetch team member')
+        }
+      } catch (err) {
+        setError('An error occurred while fetching team member')
+        console.error('Error fetching team member:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (id) {
       fetchMember()
     }
   }, [id])
-
-  const fetchMember = async () => {
-    setLoading(true)
-    setError('')
-    
-    try {
-      const response = await AdminApiService.getTeamMember(id)
-      
-      if (response.success) {
-        setMember(response.data)
-      } else {
-        setError(response.message || 'Failed to fetch team member')
-      }
-    } catch (err) {
-      setError('An error occurred while fetching team member')
-      console.error('Error fetching team member:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -163,10 +164,12 @@ export default function ViewTeamMemberPage() {
               <h3 className="text-md font-medium text-gray-900 mb-4">Profile Image</h3>
               <div className="flex justify-center">
                 {member.imageUrl ? (
-                  <img
+                  <Image
                     src={member.imageUrl}
                     alt={member.name}
-                    className="h-48 w-48 rounded-full object-cover border-4 border-gray-200"
+                    width={192}
+                    height={192}
+                    className="rounded-full object-cover border-4 border-gray-200"
                   />
                 ) : (
                   <div className="h-48 w-48 rounded-full bg-gray-200 flex items-center justify-center border-4 border-gray-200">

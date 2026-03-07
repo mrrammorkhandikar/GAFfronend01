@@ -88,10 +88,15 @@ export default function CampaignsPage() {
       label: 'Raised',
       render: (value, item) => (
         <div>
-          <div className="font-medium">${value || 0}</div>
+          <div className="font-medium">₹{(value || 0).toLocaleString('en-IN')}</div>
           {item.amount && (
             <div className="text-sm text-gray-500">
-              of ${item.amount}
+              of ₹{item.amount.toLocaleString('en-IN')}
+            </div>
+          )}
+          {item.amount > 0 && (
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+              <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, Math.round(((value || 0) / item.amount) * 100))}%` }} />
             </div>
           )}
         </div>

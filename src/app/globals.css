@@ -51,6 +51,19 @@ body {
   font-family: var(--font-poppins);
 }
 
+/* Global form field styles */
+input,
+textarea,
+select {
+  color: #000000; /* black text */
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af; /* gray placeholder */
+  opacity: 1;
+}
+
 /* Custom utility classes based on style guide */
 .bg-cream { background-color: var(--color-cream); }
 .bg-gold { background-color: var(--color-gold); }

@@ -1,20 +1,20 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 const EventCard = ({ imagePath, title, time, location, description, dateDay, dateMonth }) => {
   // Styles for the Playfair Display font (used until Tailwind config is fully working)
   const playfairStyle = { fontFamily: "'Playfair Display', serif" };
 
   return (
-    <div className="relative w-full rounded-2xl overflow-hidden shadow-xl transform transition duration-300 hover:shadow-2xl">
+    <div className="relative w-full rounded-2xl overflow-hidden shadow-xl transform transition duration-300 hover:shadow-2xl h-[400px]">
       {/* Event Image - used as background for the card area */}
-      <img
+      <Image
         src={imagePath}
         alt={title}
-        className="w-full h-full object-cover rounded-2xl"
-        // Ensure the image fills the card area
-        style={{ minHeight: '400px', maxHeight: '400px' }}
+        fill
+        className="object-cover rounded-2xl"
       />
       
       {/* Content Overlay */}

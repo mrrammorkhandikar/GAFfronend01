@@ -110,13 +110,18 @@ class AdminApiService {
   static async apiCall(endpoint, options = {}) {
     const token = this.getAdminToken()
     
-    const headers = {
+    // Do NOT set Content-Type for FormData — the browser sets it with the correct multipart boundary
+    const isFormData = options.body instanceof FormData
+    const headers = isFormData ? {} : {
       'Content-Type': 'application/json',
       ...options.headers
     }
     
+    if (!isFormData && options.headers) {
+      Object.assign(headers, options.headers)
+    }
+    
     if (token) {
-      // Add token to headers for authenticated requests
       headers['Authorization'] = `Bearer ${token}`
     }
 
@@ -197,6 +202,36 @@ class AdminApiService {
 
   static async deleteCampaign(id) {
     return this.apiCall(`/campaigns/${id}`, {
+      method: 'DELETE'
+    })
+  }
+
+  // Partners
+  static async getPartners(params = {}) {
+    const queryParams = new URLSearchParams(params).toString()
+    return this.apiCall(`/partners?${queryParams}`)
+  }
+
+  static async getPartner(id) {
+    return this.apiCall(`/partners/${id}`)
+  }
+
+  static async createPartner(formData) {
+    return this.apiCall('/partners', {
+      method: 'POST',
+      body: formData
+    })
+  }
+
+  static async updatePartner(id, formData) {
+    return this.apiCall(`/partners/${id}`, {
+      method: 'PUT',
+      body: formData
+    })
+  }
+
+  static async deletePartner(id) {
+    return this.apiCall(`/partners/${id}`, {
       method: 'DELETE'
     })
   }

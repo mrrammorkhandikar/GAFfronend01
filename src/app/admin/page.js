@@ -10,7 +10,7 @@ import {
   MessageCircle,
   TrendingUp,
   TrendingDown,
-  DollarSign,
+  IndianRupee,
   UserPlus
 } from 'lucide-react'
 import AdminLayout from './components/AdminLayout.js'
@@ -205,7 +205,7 @@ export default function AdminDashboard() {
                         Global Health Initiative
                       </p>
                       <p className="text-sm text-gray-600 font-poppins">
-                        Active • $35,000 raised
+                        Active • ₹35,000 raised
                       </p>
                     </div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFD700] text-[#6D190D] font-poppins">
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
                         Education for All
                       </p>
                       <p className="text-sm text-gray-600 font-poppins">
-                        Active • $45,000 raised
+                        Active • ₹45,000 raised
                       </p>
                     </div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFD700] text-[#6D190D] font-poppins">
@@ -246,7 +246,7 @@ export default function AdminDashboard() {
                         John Smith
                       </p>
                       <p className="text-sm text-gray-600 font-poppins">
-                        $250.00 • One-time donation
+                        ₹250.00 • One-time donation
                       </p>
                     </div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFD700] text-[#6D190D] font-poppins">
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
                         Sarah Johnson
                       </p>
                       <p className="text-sm text-gray-600 font-poppins">
-                        $100.00 • Monthly supporter
+                        ₹100.00 • Monthly supporter
                       </p>
                     </div>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFD700] text-[#6D190D] font-poppins">

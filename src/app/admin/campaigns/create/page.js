@@ -21,7 +21,9 @@ export default function CreateCampaignPage() {
   const [content, setContent] = useState({
     about: [''],
     impactGallery: Array(4).fill(''),
-    keyFocusAreas: Array(8).fill('')
+    keyFocusAreas: Array(8).fill(''),
+    impactNumbers: [{ label: '', value: '' }],
+    testimonials: [{ quote: '', author: '', role: '' }]
   })
   const [image, setImage] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -71,7 +73,7 @@ export default function CreateCampaignPage() {
 
   const handleImageUpload = (index, file) => {
     const newGallery = [...content.impactGallery]
-    newGallery[index] = file
+    newGallery[index] = { file, preview: URL.createObjectURL(file) }
     setContent(prev => ({
       ...prev,
       impactGallery: newGallery
@@ -80,6 +82,7 @@ export default function CreateCampaignPage() {
 
   const removeImage = (index) => {
     const newGallery = [...content.impactGallery]
+    if (newGallery[index]?.preview) URL.revokeObjectURL(newGallery[index].preview)
     newGallery[index] = ''
     setContent(prev => ({
       ...prev,
@@ -139,15 +142,26 @@ export default function CreateCampaignPage() {
         }
       })
 
-      // Add content as JSON with proper structure
+      // Add content as JSON — only include string URLs for gallery, not File objects
       const contentData = {
         about: content.about.filter(item => item.trim() !== ''),
-        impactGallery: content.impactGallery.filter(item => item !== ''),
-        keyFocusAreas: content.keyFocusAreas.filter(item => item.trim() !== '')
+        impactGallery: content.impactGallery
+          .map(item => (typeof item === 'string' && item !== '') ? item : (item?.url || null))
+          .filter(Boolean),
+        keyFocusAreas: content.keyFocusAreas.filter(item => item.trim() !== ''),
+        impactNumbers: content.impactNumbers.filter(n => n.label.trim() !== '' && n.value.trim() !== ''),
+        testimonials: content.testimonials.filter(t => t.quote.trim() !== '')
       }
       formDataObj.append('content', JSON.stringify(contentData))
 
-      // Add main image if selected
+      // Append new gallery image files as separate FormData fields
+      content.impactGallery.forEach((item, index) => {
+        if (item?.file instanceof File) {
+          formDataObj.append(`galleryImage_${index}`, item.file)
+        }
+      })
+
+      // Add main featured image if selected
       if (image) {
         formDataObj.append('image', image)
       }
@@ -281,7 +295,7 @@ export default function CreateCampaignPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-                      Target Amount ($)
+                      Target Amount (₹)
                     </label>
                     <input
                       type="number"
@@ -296,7 +310,7 @@ export default function CreateCampaignPage() {
                   </div>
                   <div>
                     <label htmlFor="raisedAmount" className="block text-sm font-medium text-gray-700 mb-1">
-                      Raised Amount ($)
+                      Raised Amount (₹)
                     </label>
                     <input
                       type="number"
@@ -415,24 +429,28 @@ export default function CreateCampaignPage() {
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {content.impactGallery.map((imageItem, index) => (
-                      <div key={index} className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <div key={index} className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden text-center relative" style={{minHeight:'100px'}}>
                         {imageItem ? (
-                          <div className="relative">
-                            {typeof imageItem === 'string' ? (
-                              <div className="text-sm text-gray-500">Image URL</div>
+                          <div className="relative w-full h-full">
+                            {imageItem.preview ? (
+                              <img src={imageItem.preview} alt={`Gallery ${index+1}`} className="w-full h-24 object-cover" />
+                            ) : typeof imageItem === 'string' ? (
+                              <img src={imageItem} alt={`Gallery ${index+1}`} className="w-full h-24 object-cover" onError={e=>{e.target.style.display='none'}} />
                             ) : (
-                              <div className="text-sm text-gray-500 truncate">{imageItem.name}</div>
+                              <div className="h-24 flex items-center justify-center bg-gray-100">
+                                <span className="text-xs text-gray-500 px-2 truncate">{imageItem?.file?.name || 'Image'}</span>
+                              </div>
                             )}
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 z-10"
                             >
                               <X className="h-3 w-3" />
                             </button>
                           </div>
                         ) : (
-                          <div>
+                          <div className="p-4">
                             <Upload className="mx-auto h-8 w-8 text-gray-400" />
                             <label className="mt-2 block text-sm font-medium text-gray-900 cursor-pointer">
                               <span>Upload Image</span>
@@ -467,6 +485,129 @@ export default function CreateCampaignPage() {
                           className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           placeholder={`Focus area ${index + 1}`}
                         />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Impact Numbers Section */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-900 flex items-center">
+                      <Target className="h-5 w-5 mr-2 text-blue-600" />
+                      Impact Statistics
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => setContent(prev => ({ ...prev, impactNumbers: [...prev.impactNumbers, { label: '', value: '' }] }))}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Stat
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {content.impactNumbers.map((stat, index) => (
+                      <div key={index} className="flex gap-2 items-start">
+                        <input
+                          type="text"
+                          value={stat.value}
+                          onChange={(e) => {
+                            const updated = [...content.impactNumbers]
+                            updated[index] = { ...updated[index], value: e.target.value }
+                            setContent(prev => ({ ...prev, impactNumbers: updated }))
+                          }}
+                          className="w-24 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          placeholder="e.g. 500+"
+                        />
+                        <input
+                          type="text"
+                          value={stat.label}
+                          onChange={(e) => {
+                            const updated = [...content.impactNumbers]
+                            updated[index] = { ...updated[index], label: e.target.value }
+                            setContent(prev => ({ ...prev, impactNumbers: updated }))
+                          }}
+                          className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          placeholder="Label (e.g. Children Educated)"
+                        />
+                        {content.impactNumbers.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setContent(prev => ({ ...prev, impactNumbers: prev.impactNumbers.filter((_, i) => i !== index) }))}
+                            className="text-red-600 hover:text-red-800 mt-2"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Testimonials Section */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-900">Testimonials / Quotes</h4>
+                    <button
+                      type="button"
+                      onClick={() => setContent(prev => ({ ...prev, testimonials: [...prev.testimonials, { quote: '', author: '', role: '' }] }))}
+                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Testimonial
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {content.testimonials.map((testimonial, index) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <h5 className="text-sm font-medium text-gray-700">Testimonial {index + 1}</h5>
+                          {content.testimonials.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setContent(prev => ({ ...prev, testimonials: prev.testimonials.filter((_, i) => i !== index) }))}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          )}
+                        </div>
+                        <textarea
+                          value={testimonial.quote}
+                          onChange={(e) => {
+                            const updated = [...content.testimonials]
+                            updated[index] = { ...updated[index], quote: e.target.value }
+                            setContent(prev => ({ ...prev, testimonials: updated }))
+                          }}
+                          rows={2}
+                          className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                          placeholder="Quote / testimonial text"
+                        />
+                        <div className="grid grid-cols-2 gap-3 mt-2">
+                          <input
+                            type="text"
+                            value={testimonial.author}
+                            onChange={(e) => {
+                              const updated = [...content.testimonials]
+                              updated[index] = { ...updated[index], author: e.target.value }
+                              setContent(prev => ({ ...prev, testimonials: updated }))
+                            }}
+                            className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            placeholder="Author name"
+                          />
+                          <input
+                            type="text"
+                            value={testimonial.role}
+                            onChange={(e) => {
+                              const updated = [...content.testimonials]
+                              updated[index] = { ...updated[index], role: e.target.value }
+                              setContent(prev => ({ ...prev, testimonials: updated }))
+                            }}
+                            className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
+                            placeholder="Role / Description"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>

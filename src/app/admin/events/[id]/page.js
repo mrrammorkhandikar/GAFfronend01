@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowLeft, Calendar, MapPin, Image as ImageIcon, FileText, Edit } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
 import AdminApiService from '@/app/admin/services/admin-api'
@@ -127,10 +128,12 @@ export default function ViewEventPage() {
                         <p className="mt-1 text-gray-600">{journeyItem.description}</p>
                         {journeyItem.imageUrl && (
                           <div className="mt-3">
-                            <img
+                            <Image
                               src={journeyItem.imageUrl}
                               alt={journeyItem.title}
-                              className="rounded-lg max-w-md"
+                              width={500}
+                              height={300}
+                              className="rounded-lg max-w-md w-full h-auto"
                             />
                           </div>
                         )}
@@ -164,11 +167,13 @@ export default function ViewEventPage() {
             {/* Featured Image */}
             {event.imageUrl && (
               <div className="bg-white shadow rounded-lg p-6">
-                <h3 className="text-md font-medium text-gray-900 mb-4">Featured Image</h3>
-                <img
+                <h2 className="text-lg font-medium text-gray-900 mb-4">Featured Image</h2>
+                <Image
                   src={event.imageUrl}
                   alt={event.title}
-                  className="w-full rounded-lg"
+                  width={500}
+                  height={300}
+                  className="w-full rounded-lg h-auto"
                 />
               </div>
             )}

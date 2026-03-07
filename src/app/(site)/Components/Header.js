@@ -54,7 +54,7 @@ export default function Header() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex space-x-6 items-center font-poppins">
-            {["HOME", "ABOUT", "CAMPAIGNS", "EVENTS", "CAREERS"].map((item, index) => (
+            {["HOME", "ABOUT", "CAMPAIGNS", "EVENTS", "PARTNERS", "CAREERS"].map((item, index) => (
               <motion.a
                 key={item}
                 href={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`}
@@ -138,7 +138,7 @@ export default function Header() {
             }`}
           >
             <div className="px-4 pt-3 pb-5 space-y-3">
-              {["HOME", "ABOUT", "CAMPAIGNS", "EVENTS", "CAREERS"].map((item) => (
+              {["HOME", "ABOUT", "CAMPAIGNS", "EVENTS", "PARTNERS", "CAREERS"].map((item) => (
                 <a
                   key={item}
                   href={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`}

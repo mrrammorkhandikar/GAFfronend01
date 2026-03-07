@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 // Reusable Card Component for a single campaign
 const CampaignCard = ({ imageSrc, title, raised, remaining, goal, progress }) => {
@@ -10,11 +11,12 @@ const CampaignCard = ({ imageSrc, title, raised, remaining, goal, progress }) =>
   return (
     <div className={`rounded-xl shadow-lg overflow-hidden border border-gray-100 ${cardBgColor} w-124`}>
       {/* Campaign Image */}
-      <div className="h-80 overflow-hidden rounded-2xl">
-        <img
+      <div className="h-80 overflow-hidden rounded-2xl relative">
+        <Image
           src={imageSrc}
           alt={title}
-          className="w-full h-full object-cover rounded-t-xl"
+          fill
+          className="object-cover rounded-t-xl"
         />
       </div>
 

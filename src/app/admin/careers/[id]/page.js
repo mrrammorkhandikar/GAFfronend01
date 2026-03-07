@@ -15,30 +15,30 @@ export default function ViewCareerPage() {
   const id = params.id
 
   useEffect(() => {
+    const fetchCareer = async () => {
+      setLoading(true)
+      setError('')
+      
+      try {
+        const response = await AdminApiService.getCareer(id)
+        
+        if (response.success) {
+          setCareer(response.data)
+        } else {
+          setError(response.message || 'Failed to fetch career')
+        }
+      } catch (err) {
+        setError('An error occurred while fetching career')
+        console.error('Error fetching career:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (id) {
       fetchCareer()
     }
   }, [id])
-
-  const fetchCareer = async () => {
-    setLoading(true)
-    setError('')
-    
-    try {
-      const response = await AdminApiService.getCareer(id)
-      
-      if (response.success) {
-        setCareer(response.data)
-      } else {
-        setError(response.message || 'Failed to fetch career')
-      }
-    } catch (err) {
-      setError('An error occurred while fetching career')
-      console.error('Error fetching career:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   if (loading) {
     return (

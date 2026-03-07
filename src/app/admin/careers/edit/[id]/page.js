@@ -23,40 +23,40 @@ export default function EditCareerPage() {
   const id = params.id
 
   useEffect(() => {
+    const fetchCareer = async () => {
+      setLoading(true)
+      setError('')
+      
+      try {
+        const response = await AdminApiService.getCareer(id)
+        
+        if (response.success) {
+          const careerData = response.data
+          setCareer(careerData)
+          
+          // Populate form data
+          setFormData({
+            title: careerData.title,
+            description: careerData.description,
+            location: careerData.location,
+            employmentType: careerData.employmentType,
+            isActive: careerData.isActive
+          })
+        } else {
+          setError(response.message || 'Failed to fetch career')
+        }
+      } catch (err) {
+        setError('An error occurred while fetching career')
+        console.error('Error fetching career:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (id) {
       fetchCareer()
     }
   }, [id])
-
-  const fetchCareer = async () => {
-    setLoading(true)
-    setError('')
-    
-    try {
-      const response = await AdminApiService.getCareer(id)
-      
-      if (response.success) {
-        const careerData = response.data
-        setCareer(careerData)
-        
-        // Populate form data
-        setFormData({
-          title: careerData.title,
-          description: careerData.description,
-          location: careerData.location,
-          employmentType: careerData.employmentType,
-          isActive: careerData.isActive
-        })
-      } else {
-        setError(response.message || 'Failed to fetch career')
-      }
-    } catch (err) {
-      setError('An error occurred while fetching career')
-      console.error('Error fetching career:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Search, Filter, User, Mail, Phone, Download, Calendar, X } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
@@ -21,7 +21,7 @@ export default function CareerApplicationsPage() {
   })
   const router = useRouter()
 
-  const fetchApplications = async (page = 1) => {
+  const fetchApplications = useCallback(async (page = 1) => {
     setLoading(true)
     setError('')
     
@@ -49,27 +49,26 @@ export default function CareerApplicationsPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const fetchCareers = async () => {
-    try {
-      const response = await AdminApiService.getCareers({ active: true })
-      if (response.success) {
-        setCareers(response.data)
-      }
-    } catch (err) {
-      console.error('Error fetching careers:', err)
-    }
-  }
+  }, [pagination.itemsPerPage, selectedCareer])
 
   useEffect(() => {
-    fetchApplications()
+    const fetchCareers = async () => {
+      try {
+        const response = await AdminApiService.getCareers({ active: true })
+        if (response.success) {
+          setCareers(response.data)
+        }
+      } catch (err) {
+        console.error('Error fetching careers:', err)
+      }
+    }
+
     fetchCareers()
   }, [])
 
   useEffect(() => {
     fetchApplications(1)
-  }, [selectedCareer])
+  }, [fetchApplications])
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this application?')) {
