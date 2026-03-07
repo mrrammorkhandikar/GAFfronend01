@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import AdminLayout from '../../components/AdminLayout.js'
 import AdminApiService from '../../services/admin-api.js'
 
 const PARTNER_TYPES = ['Organization', 'Individual', 'Corporate', 'NGO', 'Institution']
 
-export default function PartnerFormPage() {
+function PartnerFormInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const partnerId = searchParams.get('id')
@@ -502,6 +502,14 @@ export default function PartnerFormPage() {
         )}
       </div>
     </AdminLayout>
+  )
+}
+
+export default function PartnerFormPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-16"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#6D190D]" /></div>}>
+      <PartnerFormInner />
+    </Suspense>
   )
 }
 
