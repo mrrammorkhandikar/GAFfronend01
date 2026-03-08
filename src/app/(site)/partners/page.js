@@ -261,24 +261,49 @@ export default async function PartnersPage() {
 
       {/* Error / data states around partner grids */}
       {error ? (
-        <section className="py-16 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl font-bold text-red-600 mb-2 font-playfair">
-              Unable to load partners
+        <section className="py-20 bg-white">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="w-20 h-20 bg-[#fcf9e3] rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl">🤝</span>
+            </div>
+            <p className="font-poppins uppercase text-xs tracking-[0.25em] text-[#D4A71C] mb-3">
+              Coming Soon
+            </p>
+            <h2 className="text-3xl font-bold text-[#222222] mb-4 font-playfair">
+              Partner Showcases Are on Their Way
             </h2>
-            <p className="text-gray-700 font-poppins text-sm">{error}</p>
+            <p className="text-gray-600 font-poppins text-base max-w-lg mx-auto">
+              We are busy documenting the incredible work our partners do with us. Check back soon to see their stories, or reach out to start a new collaboration.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center mt-8 px-8 py-3 rounded-full bg-[#FFD700] text-[#222222] font-semibold font-poppins shadow hover:bg-[#f5c700] transition-colors"
+            >
+              Get in Touch
+            </Link>
           </div>
         </section>
       ) : partners.length === 0 ? (
-        <section className="py-16 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-2xl font-bold text-[#222222] mb-2 font-playfair">
-              Our partner stories are coming soon.
-            </h2>
-            <p className="text-gray-700 font-poppins text-sm">
-              We are in the process of documenting our partnerships. If you&apos;d like to partner
-              with us, reach out today.
+        <section className="py-20 bg-white">
+          <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="w-20 h-20 bg-[#fcf9e3] rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-4xl">🤝</span>
+            </div>
+            <p className="font-poppins uppercase text-xs tracking-[0.25em] text-[#D4A71C] mb-3">
+              Coming Soon
             </p>
+            <h2 className="text-3xl font-bold text-[#222222] mb-4 font-playfair">
+              Partner Showcases Are on Their Way
+            </h2>
+            <p className="text-gray-600 font-poppins text-base max-w-lg mx-auto">
+              We are busy documenting the incredible work our partners do with us. Check back soon to see their stories, or reach out to start a new collaboration.
+            </p>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center mt-8 px-8 py-3 rounded-full bg-[#FFD700] text-[#222222] font-semibold font-poppins shadow hover:bg-[#f5c700] transition-colors"
+            >
+              Get in Touch
+            </Link>
           </div>
         </section>
       ) : (
