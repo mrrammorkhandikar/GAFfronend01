@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Briefcase, Users, Handshake, Award, Heart, Mail, Phone, User, FileText, MessageSquare, MapPin, Clock, ArrowRight, CheckCircle } from 'lucide-react';
+import Link from 'next/link';
 
 const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportunities }) => {
   const [activeForm, setActiveForm] = useState('volunteer');
@@ -169,8 +170,8 @@ const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportuniti
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 min-h-[320px] bg-cover bg-center" style={{ backgroundImage: "url('/images/Png/getinvolvedpeople.png')" }}>
-        <div className="absolute inset-0 bg-black/50" />
+      <section className="relative py-20 md:py-32 min-h-[320px] bg-cover bg-center" style={{ backgroundImage: "url('/images/team/Volunteers/volunteer-hero.jpg')" }}>
+        <div className="absolute inset-0 bg-black/50 pointer-events-none" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="font-poppins uppercase text-sm font-semibold tracking-widest text-[#FFD700] mb-2">
@@ -561,6 +562,43 @@ const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportuniti
                   </form>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-white">
+        <div
+          className="max-w-6xl mx-auto rounded-3xl overflow-hidden bg-center bg-cover relative"
+          style={{ backgroundImage: "url('/images/team/Volunteers/volunteer-hero.jpg')" }}
+        >
+          <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-10 p-10 md:p-14 text-white">
+            <div>
+              <p className="font-poppins uppercase text-xs tracking-[0.25em] mb-3 text-[#FFD700]">
+                Have Questions?
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 font-playfair">
+                Talk to the Guru Akanksha Foundation Team
+              </h2>
+              <p className="text-sm md:text-base text-gray-100 max-w-md font-poppins">
+                Want to learn more about our working culture, current openings, or how volunteering fits around your schedule? Our team is happy to guide you.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start md:items-center md:justify-end gap-4">
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-[#FFD700] text-[#222222] font-semibold font-poppins shadow-lg hover:bg-[#f5c700] transition-colors"
+              >
+                Get in Touch
+              </Link>
+              <Link
+                href="/donate"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-full border-2 border-white text-white font-semibold font-poppins hover:bg-white hover:text-[#222222] transition-colors"
+              >
+                Support Our Mission
+              </Link>
             </div>
           </div>
         </div>

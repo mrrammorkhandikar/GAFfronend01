@@ -4,8 +4,11 @@ import React from 'react';
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const HeroSection = () => {
+  const router = useRouter();
+
   return (
     <div className="relative w-full h-screen">
       {/* Background Image */}
@@ -17,8 +20,8 @@ const HeroSection = () => {
         priority
       />
 
-      {/* Black overlay mask */}
-      <div className="absolute inset-0 bg-black/50" />
+      {/* Overlay — pointer-events-none so it never blocks button clicks */}
+      <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
@@ -49,13 +52,15 @@ const HeroSection = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <Link 
             href="/donate"
-            className="bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full text-lg hover:bg-yellow-600 transition-all font-poppins inline-block text-center"
+            onClick={() => router.push('/donate')}
+            className="bg-yellow-500 text-black font-semibold px-8 py-3 rounded-full text-lg hover:bg-yellow-600 transition-all font-poppins inline-block text-center cursor-pointer"
           >
             Donate Funds
           </Link>
           <Link 
-            href="/campaigns" 
-            className="border-2 border-yellow-500 text-yellow-500 font-semibold px-8 py-3 rounded-full text-lg hover:bg-yellow-500 hover:text-black transition-all font-poppins inline-block text-center"
+            href="/campaigns"
+            onClick={() => router.push('/campaigns')}
+            className="border-2 border-yellow-500 text-yellow-500 font-semibold px-8 py-3 rounded-full text-lg hover:bg-yellow-500 hover:text-black transition-all font-poppins inline-block text-center cursor-pointer"
           >
             Campaigns
           </Link>

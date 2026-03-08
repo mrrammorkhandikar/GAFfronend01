@@ -34,8 +34,8 @@ const Donate = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative py-20 md:py-32 min-h-[320px] bg-cover bg-center" style={{ backgroundImage: "url('/images/Png/GetinvolvedDonate.png')" }}>
-        <div className="absolute inset-0 bg-black/50" />
+      <section className="relative py-20 md:py-32 min-h-[320px] bg-cover bg-center" style={{ backgroundImage: "url('/images/campains/Healthy_Smile_For_Underprivileged_Children/titleImage.jpg')" }}>
+        <div className="absolute inset-0 bg-black/50 pointer-events-none" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="font-poppins uppercase text-sm font-semibold tracking-widest text-[#FFD700] mb-2">
@@ -273,9 +273,9 @@ const Donate = () => {
       <section className="py-20">
         <div
           className="max-w-6xl mx-auto rounded-3xl overflow-hidden bg-center bg-cover relative"
-          style={{ backgroundImage: "url('/images/donate-cta-bg.jpg')" }}
+          style={{ backgroundImage: "url('/images/Aboutus/Aboutuspage.jpg')" }}
         >
-          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 bg-black/60 pointer-events-none" />
           <div className="relative grid grid-cols-1 md:grid-cols-2 gap-10 p-10 md:p-14 text-white">
             <div>
               <p className="font-poppins uppercase text-xs tracking-[0.25em] mb-3 text-[#FFD700]">

@@ -134,6 +134,43 @@ export default async function CampaignsPage() {
           </div>
         </div>
       </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-white">
+        <div
+          className="max-w-6xl mx-auto rounded-3xl overflow-hidden bg-center bg-cover relative"
+          style={{ backgroundImage: "url('/images/campains/helpforpoorfamilies.jpg')" }}
+        >
+          <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-10 p-10 md:p-14 text-white">
+            <div>
+              <p className="font-poppins uppercase text-xs tracking-[0.25em] mb-3 text-[#FFD700]">
+                Make Your Impact
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 font-playfair">
+                Every Contribution Creates Lasting Change
+              </h2>
+              <p className="text-sm md:text-base text-gray-100 max-w-md font-poppins">
+                Want to support a specific campaign or need more information about our ongoing initiatives? Our team is here to guide you.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start md:items-center md:justify-end gap-4">
+              <Link
+                href="/donate"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-[#FFD700] text-[#222222] font-semibold font-poppins shadow-lg hover:bg-[#f5c700] transition-colors"
+              >
+                Donate to a Campaign
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-full border-2 border-white text-white font-semibold font-poppins hover:bg-white hover:text-[#222222] transition-colors"
+              >
+                Contact Us
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

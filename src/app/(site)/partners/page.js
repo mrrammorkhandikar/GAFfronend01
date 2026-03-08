@@ -426,6 +426,37 @@ export default async function PartnersPage() {
           </section>
         </>
       )}
+
+      {/* CTA Section */}
+      <section className="py-20 bg-[#fcf9e3]">
+        <div
+          className="max-w-6xl mx-auto rounded-3xl overflow-hidden bg-center bg-cover relative"
+          style={{ backgroundImage: "url('/images/campains/Sponsor_for_Hygienic_Living_Program/titleimage.jpg')" }}
+        >
+          <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-10 p-10 md:p-14 text-white">
+            <div>
+              <p className="font-poppins uppercase text-xs tracking-[0.25em] mb-3 text-[#FFD700]">
+                Ready to Partner?
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 font-playfair">
+                Talk to Our Partnerships Team
+              </h2>
+              <p className="text-sm md:text-base text-gray-100 max-w-md font-poppins">
+                Interested in collaborating? Whether you're a hospital, school, NGO, or CSR team, our partnerships team is ready to explore how we can make an impact together.
+              </p>
+            </div>
+            <div className="flex items-center md:justify-end">
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-[#FFD700] text-[#222222] font-semibold font-poppins shadow-lg hover:bg-[#f5c700] transition-colors"
+              >
+                Start a Conversation
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
