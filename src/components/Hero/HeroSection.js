@@ -17,6 +17,9 @@ const HeroSection = () => {
         priority
       />
 
+      {/* Black overlay mask */}
+      <div className="absolute inset-0 bg-black/50" />
+
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
         {/* Logo */}
