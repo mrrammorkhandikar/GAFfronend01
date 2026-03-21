@@ -8,6 +8,8 @@ export const metadata = {
     'Health camps, education programmes, and community events with Guru Akanksha Foundation.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function PartnersPage() {
   let partners = [];
   let error = null;

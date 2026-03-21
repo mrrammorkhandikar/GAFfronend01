@@ -7,6 +7,8 @@ export const metadata = {
   description: 'Join us in our mission to create positive change. Participate in our events, workshops, and community outreach programs.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function EventsPage() {
   let transformedEvents = [];
   let error = null;

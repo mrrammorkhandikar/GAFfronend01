@@ -6,6 +6,8 @@ export const metadata = {
   description: 'Build your career while making a difference. Join our team as a volunteer or professional and contribute to our mission of social impact.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function CareersPage() {
   let transformedVolunteerOpportunities = [];
   let transformedCareerOpportunities = [];

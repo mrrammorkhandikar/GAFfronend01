@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
 
+export const dynamic = 'force-dynamic';
+
 async function resolveRouteParams(params) {
   return typeof params?.then === 'function' ? await params : params;
 }

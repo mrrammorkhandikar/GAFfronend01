@@ -7,6 +7,9 @@ export const metadata = {
   description: 'Discover our ongoing campaigns focused on education, healthcare, and community development. Every contribution helps us reach more people in need.',
 };
 
+/** Avoid calling the API during `next build`; fetch at request time when the backend is up. */
+export const dynamic = 'force-dynamic';
+
 export default async function CampaignsPage() {
   let campaigns = [];
   let error = null;
