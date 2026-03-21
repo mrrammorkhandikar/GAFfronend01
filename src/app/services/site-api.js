@@ -1,12 +1,17 @@
 // Site API Service for frontend
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const isDev = process.env.NODE_ENV === 'development'
 
 // Log configuration on load (client-side only)
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && isDev) {
   console.log('SiteApiService Config:', {
     API_BASE_URL,
     NODE_ENV: process.env.NODE_ENV
   });
+}
+
+function warnSiteApi (...args) {
+  if (isDev) console.warn('[SiteApi]', ...args)
 }
 
 class SiteApiService {
@@ -17,9 +22,8 @@ class SiteApiService {
       ...options.headers
     }
 
-    // Debug: Log the full URL being called
-    const fullUrl = `${API_BASE_URL}${endpoint}`;
-    console.log(`[SiteApi] Requesting: ${fullUrl}`);
+    const fullUrl = `${API_BASE_URL}${endpoint}`
+    if (isDev) console.log(`[SiteApi] Requesting: ${fullUrl}`)
 
     try {
       const response = await fetch(fullUrl, {
@@ -27,15 +31,13 @@ class SiteApiService {
         headers
       })
 
-      // Check if response is OK
       if (!response.ok) {
-        console.error(`[SiteApi] Error ${response.status}: ${response.statusText}`);
         let message = `HTTP error! status: ${response.status}`
         let errors
-        const errCt = response.headers.get('content-type')
-        if (errCt && errCt.includes('application/json')) {
+        const text = await response.text()
+        if (text) {
           try {
-            const errBody = await response.json()
+            const errBody = JSON.parse(text)
             if (errBody?.message) message = errBody.message
             if (Array.isArray(errBody?.errors) && errBody.errors.length > 0) {
               errors = errBody.errors
@@ -43,21 +45,23 @@ class SiteApiService {
               if (msgs.length) message = msgs.join('; ')
             }
           } catch {
-            /* ignore */
+            const snippet = text.slice(0, 200).replace(/\s+/g, ' ')
+            if (snippet) message = `${message} — ${snippet}`
           }
         }
+        warnSiteApi(`${response.status} ${response.statusText}`, fullUrl, message)
         return {
           success: false,
           message,
           status: response.status,
           errors
-        };
+        }
       }
-      
+
       const contentType = response.headers.get('content-type')
       if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text(); 
-        console.error('[SiteApi] Non-JSON response:', text.substring(0, 200));
+        const text = await response.text()
+        warnSiteApi('Non-JSON response', fullUrl, text.substring(0, 200))
         return {
           success: false,
           message: 'Server returned non-JSON response',
@@ -77,12 +81,12 @@ class SiteApiService {
         data: data
       };
     } catch (error) {
-      console.error('[SiteApi] Fetch error:', error)
+      warnSiteApi('Fetch error:', fullUrl, error)
 
       let message = 'Network error occurred'
       if (error.message.includes('Failed to fetch')) {
         message = 'Unable to connect to server. Check CORS configuration or if server is running.'
-        console.warn('CORS Hint: Ensure NEXT_PUBLIC_API_URL matches the backend URL and the backend allows this origin.');
+        warnSiteApi('Hint: NEXT_PUBLIC_API_URL must match the backend URL; backend CORS must allow this origin.')
       }
 
       return {
