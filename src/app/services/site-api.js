@@ -1,13 +1,14 @@
 // Site API Service for frontend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+import { getApiBaseUrl } from '@/lib/api-base'
+
 const isDev = process.env.NODE_ENV === 'development'
 
 // Log configuration on load (client-side only)
 if (typeof window !== 'undefined' && isDev) {
   console.log('SiteApiService Config:', {
-    API_BASE_URL,
+    API_BASE_URL: getApiBaseUrl(),
     NODE_ENV: process.env.NODE_ENV
-  });
+  })
 }
 
 function warnSiteApi (...args) {
@@ -22,7 +23,7 @@ class SiteApiService {
       ...options.headers
     }
 
-    const fullUrl = `${API_BASE_URL}${endpoint}`
+    const fullUrl = `${getApiBaseUrl()}${endpoint}`
     if (isDev) console.log(`[SiteApi] Requesting: ${fullUrl}`)
 
     try {

@@ -15,63 +15,45 @@ const Events = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await SiteApiService.getUpcomingEvents(2); // Fetch 2 events for the homepage
-        console.log('Events API Response:', response); // Debug log
-        
-        console.log('=== Checking response structure ===');
-        console.log('Response:', response);
-        console.log('Response.success:', response.success);
-        console.log('Response.data:', response.data);
-        console.log('Response.data type:', typeof response.data);
-        
-        // Check if response.data has the nested structure
-        const eventData = response.data && response.data.success && response.data.data ? response.data.data : response.data;
-        console.log('Event data (extracted):', eventData);
-        console.log('Is event data an array:', Array.isArray(eventData));
-        
-        if (response.success && eventData) {
-          console.log('=== Processing events ===');
-          console.log('Raw API Data:', eventData);
-          console.log('Is Array:', Array.isArray(eventData));
-          
-          // Transform the event data to match the expected format for EventCard
-          let transformedEvents = [];
-          
-          if (Array.isArray(eventData)) {
-            console.log('=== Starting map function ===');
-            transformedEvents = eventData.map((event, index) => {
-              console.log(`=== Processing event ${index} ===`);
-              console.log('Event data:', event);
-              
-              const isPast = event.eventDate ? new Date(event.eventDate) < new Date() : false;
-              const transformedEvent = {
-                id: event.id,
-                slug: event.slug,
-                imagePath: event.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
-                title: event.title,
-                time: event.eventDate ? new Date(event.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD',
-                location: event.location,
-                description: event.description?.substring(0, 100) + '...' || 'Event description coming soon...',
-                dateDay: event.eventDate ? new Date(event.eventDate).getDate() : '01',
-                dateMonth: event.eventDate ? new Date(event.eventDate).toLocaleString('default', { month: 'short' }).toUpperCase() : 'JAN',
-                registrationEnabled: isRegistrationEnabled(event.registrationEnabled),
-                isPast,
-              };
-              
-              console.log('Transformed event:', transformedEvent);
-              return transformedEvent;
-            });
-            console.log('=== Map function completed ===');
-          } else {
-            console.log('=== eventData is not an array ===');
-            console.log('eventData:', eventData);
-          }
-          
-          console.log('Final transformed events:', transformedEvents);
+        const response = await SiteApiService.getUpcomingEvents(2);
+
+        const eventData =
+          response.data && response.data.success && response.data.data
+            ? response.data.data
+            : response.data;
+
+        if (response.success && Array.isArray(eventData)) {
+          const transformedEvents = eventData.map((event) => {
+            const isPast = event.eventDate ? new Date(event.eventDate) < new Date() : false;
+            const desc = (event.description || '').trim();
+            return {
+              id: event.id,
+              slug: event.slug,
+              imagePath: event.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
+              title: event.title,
+              time: event.eventDate
+                ? new Date(event.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'TBD',
+              location: event.location,
+              description:
+                desc.length > 100 ? `${desc.slice(0, 100)}...` : desc || 'Event description coming soon...',
+              dateDay: event.eventDate ? String(new Date(event.eventDate).getDate()) : '01',
+              dateMonth: event.eventDate
+                ? new Date(event.eventDate).toLocaleString('default', { month: 'short' }).toUpperCase()
+                : 'JAN',
+              registrationEnabled: isRegistrationEnabled(event.registrationEnabled),
+              isPast,
+            };
+          });
           setEvents(transformedEvents);
         } else {
-          console.error('Failed to fetch events:', response.message || 'No data returned');
-          setError(response.message || 'Failed to load events');
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[Events]', response.message || 'No data returned', response);
+          }
+          setError(
+            response.message ||
+              'Could not load events from the server. If you use a deployed API, check backend DATABASE_URL on Vercel.'
+          );
         }
       } catch (error) {
         console.error('Error fetching events:', error);

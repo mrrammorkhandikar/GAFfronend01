@@ -1,21 +1,21 @@
 // Admin API Service for frontend
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+import { getApiBaseUrl } from '@/lib/api-base'
 
 // Log configuration on load (client-side only)
 if (typeof window !== 'undefined') {
   console.log('AdminApiService Config:', {
-    API_BASE_URL,
+    API_BASE_URL: getApiBaseUrl(),
     NODE_ENV: process.env.NODE_ENV
-  });
+  })
 }
 
 class AdminApiService {
   // Authentication
   static async adminLogin(credentials) {
     try {
-      console.log(`[AdminApi] Login Request to: ${API_BASE_URL}/admin/login`);
+      console.log(`[AdminApi] Login Request to: ${getApiBaseUrl()}/admin/login`)
       
-      const response = await fetch(`${API_BASE_URL}/admin/login`, {
+      const response = await fetch(`${getApiBaseUrl()}/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ class AdminApiService {
     }
 
     // Debug: Log the full URL being called
-    const fullUrl = `${API_BASE_URL}${endpoint}`;
+    const fullUrl = `${getApiBaseUrl()}${endpoint}`
     console.log(`[AdminApi] Requesting: ${fullUrl}`);
     
     try {
