@@ -1,4 +1,5 @@
 import SiteApiService from '@/app/services/site-api';
+import { isRegistrationEnabled } from '@/lib/eventRegistration';
 import EventsClient from './EventsClient';
 
 export const metadata = {
@@ -14,7 +15,16 @@ export default async function EventsPage() {
     const response = await SiteApiService.getAllEvents();
     if (response.success && response.data) {
       // Transform the event data to match the expected format
-      transformedEvents = Array.isArray(response.data) ? response.data.map((event) => ({
+      transformedEvents = Array.isArray(response.data) ? response.data.map((event) => {
+        let content = event.content;
+        if (typeof content === 'string') {
+          try {
+            content = JSON.parse(content);
+          } catch {
+            content = {};
+          }
+        }
+        return {
         id: event.id,
         slug: event.slug,
         imagePath: event.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
@@ -23,12 +33,14 @@ export default async function EventsPage() {
         location: event.location,
         eventDate: event.eventDate,
         isActive: event.isActive,
-        content: event.content,
+        content: content || {},
         campaignId: event.campaignId,
         campaign: event.campaign,
         registrations: event.registrations || [],
-        achievements: event.content?.keyAchievements || [],
-        journey: event.content?.journey || [],
+        registrationEnabled: isRegistrationEnabled(event.registrationEnabled),
+        registrationFee: event.registrationFee ?? 0,
+        achievements: content?.keyAchievements || [],
+        journey: content?.journey || [],
         time: event.eventDate ? new Date(event.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' onwards' : 'TBD',
         dateDay: event.eventDate ? new Date(event.eventDate).getDate() + 'th' : '01st',
         dateMonth: event.eventDate ? new Date(event.eventDate).toLocaleString('default', { month: 'short' }).toUpperCase() : 'JAN',
@@ -40,8 +52,9 @@ export default async function EventsPage() {
         }) : 'Date TBD',
         isPast: event.eventDate ? new Date(event.eventDate) < new Date() : false,
         isUpcoming: event.eventDate ? new Date(event.eventDate) > new Date() : false,
-        registrationCount: event.registrations?.length || 0
-      })).filter(event => event.isActive) : [];
+        registrationCount: event.registrationCount ?? event.registrations?.length ?? 0
+      };
+      }).filter(event => event.isActive) : [];
     } else {
       error = response.message || 'Failed to fetch events';
     }

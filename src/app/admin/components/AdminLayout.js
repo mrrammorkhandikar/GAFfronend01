@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
@@ -18,17 +18,36 @@ import {
   ChevronDown,
   ChevronUp,
   Bell,
-  Settings
+  Settings,
+  Image as ImageIcon
 } from 'lucide-react'
 import AdminApiService from '../services/admin-api'
+
+function formatTimeAgo(iso) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const diff = Date.now() - d.getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 48) return `${hrs}h ago`
+  return d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+}
 
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [adminInfo, setAdminInfo] = useState(null)
   const [openMenus, setOpenMenus] = useState({})
-  const [notifications, setNotifications] = useState(0)
+  const [activityOpen, setActivityOpen] = useState(false)
+  const [activityItems, setActivityItems] = useState([])
+  const [activityLoading, setActivityLoading] = useState(false)
+  const [activityHours] = useState(48)
+  const notifPanelRef = useRef(null)
   const pathname = usePathname()
   const router = useRouter()
+
+  const activityCount = activityItems.length
 
   // Memoized authentication check
   const checkAuth = useCallback(() => {
@@ -63,11 +82,38 @@ export default function AdminLayout({ children }) {
     checkAuth()
   }, [checkAuth])
 
-  // Fetch notifications (mock data for now)
+  const loadRecentActivity = useCallback(async () => {
+    if (!adminInfo) return
+    setActivityLoading(true)
+    try {
+      const res = await AdminApiService.getAdminRecentActivity(activityHours)
+      if (res.success && res.data?.items) {
+        setActivityItems(res.data.items)
+      } else {
+        setActivityItems([])
+      }
+    } catch (e) {
+      console.error('Recent activity fetch failed:', e)
+      setActivityItems([])
+    } finally {
+      setActivityLoading(false)
+    }
+  }, [adminInfo, activityHours])
+
   useEffect(() => {
-    // In a real app, this would fetch actual notifications
-    setNotifications(3)
-  }, [])
+    loadRecentActivity()
+  }, [loadRecentActivity, pathname])
+
+  useEffect(() => {
+    if (!activityOpen) return
+    const onDoc = (e) => {
+      if (notifPanelRef.current && !notifPanelRef.current.contains(e.target)) {
+        setActivityOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [activityOpen])
 
   const toggleMenu = useCallback((menuName) => {
     setOpenMenus(prev => ({
@@ -105,6 +151,15 @@ export default function AdminLayout({ children }) {
       href: '/admin',
       icon: LayoutDashboard,
       exact: true
+    },
+    {
+      name: 'Hero Slider',
+      href: '/admin/hero-slides',
+      icon: ImageIcon,
+      submenu: [
+        { name: 'All Slides', href: '/admin/hero-slides' },
+        { name: 'Add Slide', href: '/admin/hero-slides/create' }
+      ]
     },
     {
       name: 'Campaigns',
@@ -328,13 +383,87 @@ export default function AdminLayout({ children }) {
             </div>
         
             <div className="flex items-center space-x-4">
-              {/* Notifications */}
-              <button className="relative p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
-                <Bell className="h-5 w-5" />
-                {notifications > 0 && (
-                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white"></span>
+              <div className="relative" ref={notifPanelRef}>
+                <button
+                  type="button"
+                  aria-expanded={activityOpen}
+                  aria-haspopup="true"
+                  aria-label="Notifications — donations and registrations (last 48 hours)"
+                  onClick={() => {
+                    setActivityOpen((o) => !o)
+                    if (!activityOpen) loadRecentActivity()
+                  }}
+                  className="relative p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <Bell className="h-5 w-5" />
+                  {activityCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-[#6D190D] text-[10px] font-bold text-white ring-2 ring-white">
+                      {activityCount > 99 ? '99+' : activityCount}
+                    </span>
+                  )}
+                </button>
+
+                {activityOpen && (
+                  <div className="absolute right-0 mt-2 w-[min(100vw-2rem,22rem)] max-h-[min(24rem,70vh)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl z-[60] flex flex-col">
+                    <div className="px-3 py-2 border-b border-gray-100 bg-[#fcf9e3]">
+                      <p className="text-sm font-semibold text-[#222222] font-playfair">Recent activity</p>
+                      <p className="text-xs text-gray-600 font-poppins">
+                        Donations &amp; event registrations · last {activityHours}h
+                      </p>
+                    </div>
+                    <div className="overflow-y-auto flex-1">
+                      {activityLoading ? (
+                        <p className="px-3 py-6 text-sm text-gray-500 text-center font-poppins">Loading…</p>
+                      ) : activityItems.length === 0 ? (
+                        <p className="px-3 py-6 text-sm text-gray-500 text-center font-poppins">
+                          No donations or registrations in the last {activityHours} hours.
+                        </p>
+                      ) : (
+                        <ul className="divide-y divide-gray-100">
+                          {activityItems.map((item) => (
+                            <li key={`${item.kind}-${item.id}`}>
+                              <Link
+                                href={item.href}
+                                onClick={() => setActivityOpen(false)}
+                                className="block px-3 py-2.5 hover:bg-gray-50 transition-colors"
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <span className="text-[10px] uppercase tracking-wide font-semibold text-[#6D190D] font-poppins shrink-0">
+                                    {item.kind === 'donation' ? 'Donation' : 'Registration'}
+                                  </span>
+                                  <span className="text-[10px] text-gray-400 font-poppins whitespace-nowrap">
+                                    {formatTimeAgo(item.createdAt)}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-medium text-gray-900 font-poppins mt-0.5 line-clamp-2">
+                                  {item.headline}
+                                </p>
+                                <p className="text-xs text-gray-600 font-poppins mt-0.5 line-clamp-2">{item.detail}</p>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="border-t border-gray-100 px-2 py-1.5 flex gap-2 justify-end bg-gray-50">
+                      <Link
+                        href="/admin/donations"
+                        onClick={() => setActivityOpen(false)}
+                        className="text-xs font-medium text-[#6D190D] hover:underline px-2 py-1 font-poppins"
+                      >
+                        Donations
+                      </Link>
+                      <Link
+                        href="/admin/events/registrations"
+                        onClick={() => setActivityOpen(false)}
+                        className="text-xs font-medium text-[#6D190D] hover:underline px-2 py-1 font-poppins"
+                      >
+                        Registrations
+                      </Link>
+                    </div>
+                  </div>
                 )}
-              </button>
+              </div>
         
               {/* User menu */}
               <div className="flex items-center">

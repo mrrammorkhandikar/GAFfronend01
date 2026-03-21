@@ -9,6 +9,7 @@ import AdminApiService from '../services/admin-api.js'
 export default function DonationsPage() {
   const [donations, setDonations] = useState([])
   const [loading, setLoading] = useState(true)
+  const [detailDonation, setDetailDonation] = useState(null)
 
   useEffect(() => {
     fetchDonations()
@@ -31,7 +32,10 @@ export default function DonationsPage() {
     try {
       const result = await AdminApiService.updateDonationStatus(donationId, newStatus)
       if (result.success) {
-        fetchDonations() // Refresh the list
+        fetchDonations()
+        setDetailDonation((prev) =>
+          prev && prev.id === donationId ? { ...prev, status: newStatus } : prev
+        )
       } else {
         alert('Failed to update donation status: ' + result.message)
       }
@@ -57,11 +61,20 @@ export default function DonationsPage() {
       )
     },
     {
+      key: 'campaign',
+      label: 'Campaign',
+      render: (_, item) => (
+        <div className="max-w-[180px] truncate text-gray-900 font-medium">
+          {item.campaign?.title || '—'}
+        </div>
+      )
+    },
+    {
       key: 'amount',
       label: 'Amount',
       render: (value) => (
         <div className="font-bold text-gray-900">
-          ₹{value.toLocaleString('en-IN')}
+          ₹{Number(value).toLocaleString('en-IN')}
         </div>
       )
     },
@@ -70,7 +83,7 @@ export default function DonationsPage() {
       label: 'Message',
       render: (value) => (
         <div className="max-w-xs truncate text-gray-500">
-          {value || 'No message'}
+          {value || '—'}
         </div>
       )
     },
@@ -100,17 +113,19 @@ export default function DonationsPage() {
   const actions = [
     {
       key: 'completed',
-      label: 'Mark as Completed',
+      label: 'Approve',
       type: 'edit'
     },
     {
       key: 'failed',
-      label: 'Mark as Failed',
+      label: 'Reject',
       type: 'delete'
     }
   ]
 
   const handleAction = (action, donation) => {
+    const label = action === 'completed' ? 'approve' : 'reject'
+    if (!window.confirm(`Are you sure you want to ${label} this donation?`)) return
     handleStatusChange(donation.id, action)
   }
 
@@ -120,7 +135,7 @@ export default function DonationsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Donations</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Manage and track donations to your organization
+            Review pending payments, approve to confirm and email the donor, or reject. Click a row for full details.
           </p>
         </div>
 
@@ -130,6 +145,7 @@ export default function DonationsPage() {
           columns={columns}
           actions={actions}
           onAction={handleAction}
+          onRowClick={(row) => setDetailDonation(row)}
           loading={loading}
           searchable={true}
           filterable={true}
@@ -140,8 +156,8 @@ export default function DonationsPage() {
               options: [
                 { value: '', label: 'All Status' },
                 { value: 'pending', label: 'Pending' },
-                { value: 'completed', label: 'Completed' },
-                { value: 'failed', label: 'Failed' }
+                { value: 'completed', label: 'Approved' },
+                { value: 'failed', label: 'Rejected' }
               ]
             }
           ]}
@@ -160,7 +176,7 @@ export default function DonationsPage() {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Raised
+                      Total approved (₹)
                     </dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">
@@ -187,7 +203,7 @@ export default function DonationsPage() {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      Completed Donations
+                      Approved donations
                     </dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">
@@ -211,7 +227,7 @@ export default function DonationsPage() {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      Pending Donations
+                      Pending
                     </dt>
                     <dd className="flex items-baseline">
                       <div className="text-2xl font-semibold text-gray-900">
@@ -225,6 +241,139 @@ export default function DonationsPage() {
           </div>
         </div>
       </div>
+
+      {/* Detail modal */}
+      {detailDonation && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setDetailDonation(null)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Donation details</h2>
+              <button
+                type="button"
+                onClick={() => setDetailDonation(null)}
+                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <dl className="space-y-3 text-sm text-black">
+              <div>
+                <dt className="text-gray-500">Status</dt>
+                <dd className="font-medium capitalize">{detailDonation.status}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Amount</dt>
+                <dd className="font-bold text-lg">
+                  ₹{Number(detailDonation.amount).toLocaleString('en-IN')} {detailDonation.currency}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Campaign</dt>
+                <dd className="font-medium">{detailDonation.campaign?.title || '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Donor</dt>
+                <dd className="font-medium">
+                  {detailDonation.isAnonymous ? 'Anonymous' : detailDonation.donorName}
+                </dd>
+              </div>
+              {!detailDonation.isAnonymous && (
+                <div>
+                  <dt className="text-gray-500">Email</dt>
+                  <dd className="font-mono text-xs break-all">{detailDonation.donorEmail}</dd>
+                </div>
+              )}
+              {detailDonation.donorPhone && (
+                <div>
+                  <dt className="text-gray-500">Phone</dt>
+                  <dd>{detailDonation.donorPhone}</dd>
+                </div>
+              )}
+              {detailDonation.donorAddress && (
+                <div>
+                  <dt className="text-gray-500">Address</dt>
+                  <dd className="whitespace-pre-wrap">{detailDonation.donorAddress}</dd>
+                </div>
+              )}
+              {detailDonation.message && (
+                <div>
+                  <dt className="text-gray-500">Message</dt>
+                  <dd className="whitespace-pre-wrap">{detailDonation.message}</dd>
+                </div>
+              )}
+              {detailDonation.receiptUrl && (
+                <div>
+                  <dt className="text-gray-500">Receipt</dt>
+                  <dd>
+                    <a
+                      href={detailDonation.receiptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
+                      View uploaded receipt
+                    </a>
+                  </dd>
+                </div>
+              )}
+              <div>
+                <dt className="text-gray-500">Submitted</dt>
+                <dd>{format(new Date(detailDonation.createdAt), 'PPpp')}</dd>
+              </div>
+            </dl>
+
+            <p className="mt-4 text-xs text-gray-500">
+              Payment was made via the instructions on the donate page (UPI or bank transfer). Match this entry with your
+              bank/UPI statement before approving.
+            </p>
+
+            {detailDonation.status === 'pending' && (
+              <div className="flex gap-2 mt-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Approve this donation? The donor will receive a confirmation email and the campaign total will update.')) {
+                      handleStatusChange(detailDonation.id, 'completed')
+                    }
+                  }}
+                  className="flex-1 py-2 rounded-md bg-green-600 text-white font-medium hover:bg-green-700"
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Reject this donation?')) {
+                      handleStatusChange(detailDonation.id, 'failed')
+                    }
+                  }}
+                  className="flex-1 py-2 rounded-md bg-red-600 text-white font-medium hover:bg-red-700"
+                >
+                  Reject
+                </button>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setDetailDonation(null)}
+              className="mt-3 w-full py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   )
 }

@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 // Define the paths to your custom icon images
 const ICON_PATHS = {
-  // Use the people icon for Volunteer and Partner
+  // Use the people icon for volunteer / collaborate cards
   people: '/images/Png/getinvolvedpeople.png',
   // Use the donate icon for Donate to Support
   donate: '/images/Png/GetinvolvedDonate.png',
@@ -68,11 +68,11 @@ const GetInvolved = () => {
     },
     {
       iconPath: ICON_PATHS.people,
-      title: 'Become A Partner',
+      title: 'Collaborate With Us',
       description:
-        'If you are an organization looking to partner with us and serve the cause, we are happy to collaborate with you.',
+        'Organizations and professionals can work with us on health, education, and community programmes. Reach out to explore what fits best.',
       buttonText: 'Contact now',
-      buttonLink: '/partner', 
+      buttonLink: '/contact',
     },
   ];
 

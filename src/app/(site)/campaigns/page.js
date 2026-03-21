@@ -16,6 +16,7 @@ export default async function CampaignsPage() {
     if (response.success && response.data) {
       campaigns = Array.isArray(response.data) ? response.data.map((campaign) => ({
         id: campaign.id,
+        slug: campaign.slug,
         imageSrc: campaign.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
         title: campaign.title,
         raised: `Rs. ${(campaign.raisedAmount || 0).toLocaleString()}`,
@@ -116,7 +117,7 @@ export default async function CampaignsPage() {
                   
                   <div className="flex gap-4">
                     <Link 
-                      href={`/campaigns/${campaign.id}`}
+                      href={`/campaigns/${campaign.slug || campaign.id}`}
                       className="flex-1 bg-white border-2 border-[#D4A71C] text-[#D4A71C] py-3 rounded-lg font-bold text-center hover:bg-[#D4A71C] hover:text-white transition-colors font-poppins"
                     >
                       View Details

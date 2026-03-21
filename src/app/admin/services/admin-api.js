@@ -176,6 +176,12 @@ class AdminApiService {
     return this.apiCall('/admin/stats')
   }
 
+  /** Donations + event registrations in the last `hours` (default 48), newest first */
+  static async getAdminRecentActivity(hours = 48) {
+    const q = new URLSearchParams({ hours: String(hours) }).toString()
+    return this.apiCall(`/admin/activity?${q}`)
+  }
+
   // Campaigns
   static async getCampaigns(params = {}) {
     const queryParams = new URLSearchParams(params).toString()
@@ -286,6 +292,13 @@ class AdminApiService {
   static async deleteEventRegistration(id) {
     return this.apiCall(`/event-registrations/${id}`, {
       method: 'DELETE'
+    })
+  }
+
+  static async updateEventRegistrationStatus(id, status) {
+    return this.apiCall(`/event-registrations/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
     })
   }
 
@@ -407,6 +420,36 @@ class AdminApiService {
     })
   }
 
+  // Hero Slides (homepage slider)
+  static async getHeroSlides(params = {}) {
+    const queryParams = new URLSearchParams(params).toString()
+    return this.apiCall(`/hero-slides?${queryParams}`)
+  }
+
+  static async getHeroSlide(id) {
+    return this.apiCall(`/hero-slides/${id}`)
+  }
+
+  static async createHeroSlide(formData) {
+    return this.apiCall('/hero-slides', {
+      method: 'POST',
+      body: formData
+    })
+  }
+
+  static async updateHeroSlide(id, formData) {
+    return this.apiCall(`/hero-slides/${id}`, {
+      method: 'PUT',
+      body: formData
+    })
+  }
+
+  static async deleteHeroSlide(id) {
+    return this.apiCall(`/hero-slides/${id}`, {
+      method: 'DELETE'
+    })
+  }
+
   // Donations
   static async getDonations(params = {}) {
     const queryParams = new URLSearchParams(params).toString()
@@ -432,8 +475,14 @@ class AdminApiService {
 
   static async updateContactStatus(id, status) {
     return this.apiCall(`/contact/${id}/status`, {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify({ status })
+    })
+  }
+
+  static async deleteContactForm(id) {
+    return this.apiCall(`/contact/${id}`, {
+      method: 'DELETE'
     })
   }
 }

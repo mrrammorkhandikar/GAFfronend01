@@ -110,17 +110,17 @@ const EventsClient = ({ initialEvents }) => {
 
                       <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
                         <Link 
-                          href={`/events/${event.id}`}
+                          href={`/events/${event.slug || event.id}`}
                           className="px-8 py-3 bg-[#6D190D] text-white rounded-lg font-semibold hover:bg-[#5a140a] transition-colors shadow-lg shadow-[#6D190D]/20 font-poppins"
                         >
                           View Details
                         </Link>
-                        {event.isUpcoming && (
-                          <Link 
-                            href={`/events/${event.id}/register`}
+                        {!event.isPast && event.registrationEnabled && (
+                          <Link
+                            href={`/events/register?event=${encodeURIComponent(event.slug || event.id)}`}
                             className="px-8 py-3 bg-white border-2 border-[#6D190D] text-[#6D190D] rounded-lg font-semibold hover:bg-gray-50 transition-colors font-poppins"
                           >
-                            Register Now
+                            Register for event
                           </Link>
                         )}
                       </div>

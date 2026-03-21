@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, MessageSquare, User, FileText } from 'lucide-react';
+import SiteApiService from '@/app/services/site-api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,9 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,18 +21,33 @@ const Contact = () => {
       ...prev,
       [name]: value
     }));
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Contact form submitted:', formData);
-    alert('Thank you for contacting us! We will get back to you soon.');
-    setFormData({
-      name: '',
-      email: '',
-      subject: '',
-      message: ''
-    });
+    setLoading(true);
+    setError('');
+    setSuccess(false);
+    try {
+      const result = await SiteApiService.submitContactForm({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject.trim() || 'No subject',
+        message: formData.message.trim()
+      });
+      if (result.success) {
+        setSuccess(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      } else {
+        setError(result.message || 'Failed to send message. Please try again.');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again or email us directly.');
+      console.error('Contact form error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -110,6 +129,17 @@ const Contact = () => {
             {/* Contact Form */}
             <div className="bg-[#fcf9e3] rounded-xl p-8">
               <h2 className="text-3xl font-bold text-[#222222] mb-6 font-playfair">Send Us a Message</h2>
+
+              {success && (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 font-poppins text-sm">
+                  Thank you for contacting us! We have received your message and will get back to you soon.
+                </div>
+              )}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 font-poppins text-sm">
+                  {error}
+                </div>
+              )}
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -178,9 +208,10 @@ const Contact = () => {
 
                 <button
                   type="submit"
-                  className="w-full bg-[#6D190D] text-white py-3 rounded-lg font-semibold hover:bg-[#8B2317] transition-colors font-poppins"
+                  disabled={loading}
+                  className="w-full bg-[#6D190D] text-white py-3 rounded-lg font-semibold hover:bg-[#8B2317] transition-colors font-poppins disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Send Message
+                  {loading ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </div>

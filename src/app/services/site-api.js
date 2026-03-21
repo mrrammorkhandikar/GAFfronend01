@@ -30,10 +30,27 @@ class SiteApiService {
       // Check if response is OK
       if (!response.ok) {
         console.error(`[SiteApi] Error ${response.status}: ${response.statusText}`);
+        let message = `HTTP error! status: ${response.status}`
+        let errors
+        const errCt = response.headers.get('content-type')
+        if (errCt && errCt.includes('application/json')) {
+          try {
+            const errBody = await response.json()
+            if (errBody?.message) message = errBody.message
+            if (Array.isArray(errBody?.errors) && errBody.errors.length > 0) {
+              errors = errBody.errors
+              const msgs = errBody.errors.map((e) => e.msg || e.message).filter(Boolean)
+              if (msgs.length) message = msgs.join('; ')
+            }
+          } catch {
+            /* ignore */
+          }
+        }
         return {
           success: false,
-          message: `HTTP error! status: ${response.status}`,
-          status: response.status
+          message,
+          status: response.status,
+          errors
         };
       }
       
@@ -95,11 +112,19 @@ class SiteApiService {
   }
 
   static async getAllEvents() {
-    return this.apiCall('/events')
+    return this.apiCall('/events?limit=200')
   }
 
   static async getEvent(id) {
     return this.apiCall(`/events/${id}`)
+  }
+
+  /** Public event registration (pending until admin approves) */
+  static async submitEventRegistration(payload) {
+    return this.apiCall('/event-registrations/submit', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
   }
 
   // Team Members
@@ -146,7 +171,20 @@ class SiteApiService {
     return this.apiCall('/volunteer-opportunities')
   }
 
-  // Contact Messages
+  // Contact form (public submit)
+  static async submitContactForm(data) {
+    return this.apiCall('/contact', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        subject: data.subject || 'No subject',
+        message: data.message
+      })
+    })
+  }
+
+  // Contact Messages (admin/list)
   static async getContactMessages(limit = 4) {
     return this.apiCall('/contact/public')
   }
@@ -154,6 +192,29 @@ class SiteApiService {
   // Volunteer Submissions
   static async getVolunteerSubmissions(limit = 4) {
     return this.apiCall('/volunteer-submissions/public')
+  }
+
+  // Hero Slider (homepage)
+  static async getHeroSlides() {
+    return this.apiCall('/public/hero-slides')
+  }
+
+  /** Active campaigns for donate form (public) */
+  static async getPublicCampaignsList() {
+    return this.apiCall('/public/campaigns')
+  }
+
+  /** UPI / bank display for donate modal */
+  static async getDonationPaymentInfo() {
+    return this.apiCall('/public/donation-payment-info')
+  }
+
+  /** Submit donation after user completes payment (pending until admin approves) */
+  static async submitDonation(payload) {
+    return this.apiCall('/donations/submit', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
   }
 }
 

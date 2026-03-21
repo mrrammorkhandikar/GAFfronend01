@@ -39,6 +39,7 @@ const Campaigns = () => {
               
               const transformedCampaign = {
                 id: campaign.id,
+                slug: campaign.slug,
                 imageSrc: campaign.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
                 title: campaign.title,
                 raised: `Rs. ${raisedAmount.toLocaleString()}`,

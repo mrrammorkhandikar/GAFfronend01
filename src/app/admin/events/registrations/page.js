@@ -88,6 +88,23 @@ export default function EventRegistrationsPage() {
     }
   }
 
+  const handleApprove = async (id) => {
+    if (!window.confirm('Approve this registration? A confirmation email will be sent to the registrant.')) {
+      return
+    }
+    try {
+      const response = await AdminApiService.updateEventRegistrationStatus(id, 'completed')
+      if (response.success) {
+        fetchRegistrations(pagination.currentPage)
+      } else {
+        setError(response.message || 'Failed to approve registration')
+      }
+    } catch (err) {
+      setError('An error occurred while approving registration')
+      console.error('Error approving registration:', err)
+    }
+  }
+
   const filteredRegistrations = registrations.filter(registration =>
     registration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     registration.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -210,6 +227,12 @@ export default function EventRegistrationsPage() {
                       Contact
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Fee
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Registered
                     </th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -255,13 +278,40 @@ export default function EventRegistrationsPage() {
                           {registration.mobile}
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {Number(registration.amount) > 0
+                          ? `₹${Number(registration.amount).toLocaleString('en-IN')}`
+                          : '—'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full capitalize ${
+                            registration.status === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : registration.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {registration.status || 'pending'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(registration.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        {registration.status === 'pending' && (
+                          <button
+                            type="button"
+                            onClick={() => handleApprove(registration.id)}
+                            className="text-green-600 hover:text-green-900 mr-3"
+                          >
+                            Approve
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDelete(registration.id)}
-                          className="text-red-600 hover:text-red-900 ml-4"
+                          className="text-red-600 hover:text-red-900"
                         >
                           Delete
                         </button>

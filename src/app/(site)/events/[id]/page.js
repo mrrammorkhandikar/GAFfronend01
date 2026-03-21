@@ -13,30 +13,24 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
+import { isRegistrationEnabled } from '@/lib/eventRegistration';
 
 const EventDetails = ({ params }) => {
   const [event, setEvent] = useState(null);
-  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [registrationData, setRegistrationData] = useState({
-    name: '',
-    number: '',
-    email: '',
-  });
-  const [showThankYou, setShowThankYou] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [relatedEvents, setRelatedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadEvent = async () => {
       try {
-        const resolvedParams = await params;
-        const id = resolvedParams?.id;
-        if (!id) {
-          throw new Error('Event ID is missing from parameters');
+        const resolvedParams = typeof params?.then === 'function' ? await params : params;
+        const idOrSlug = resolvedParams?.id ?? resolvedParams?.slug;
+        if (!idOrSlug) {
+          throw new Error('Event identifier is missing from parameters');
         }
 
-        const response = await SiteApiService.getEvent(id);
+        const response = await SiteApiService.getEvent(idOrSlug);
         if (!response.success) {
           setError(response.message || 'Failed to load event');
           return;
@@ -58,9 +52,7 @@ const EventDetails = ({ params }) => {
           image: response.data.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
           description: response.data.description,
           fullDescription:
-            response.data.description ||
-            response.data.details ||
-            'Event details coming soon...',
+            response.data.description || response.data.details || '',
           eventDate: response.data.eventDate,
           location: response.data.location,
           address: response.data.address,
@@ -93,7 +85,10 @@ const EventDetails = ({ params }) => {
           isUpcoming: response.data.eventDate
             ? new Date(response.data.eventDate) > new Date()
             : false,
-          registrationCount: response.data.registrations?.length || 0,
+          registrationEnabled: isRegistrationEnabled(response.data.registrationEnabled),
+          registrationFee: response.data.registrationFee ?? 0,
+          registrationCount:
+            response.data.registrationCount ?? response.data.registrations?.length ?? 0,
           about: content?.about || [],
           status: response.data.isActive
             ? response.data.eventDate
@@ -106,9 +101,41 @@ const EventDetails = ({ params }) => {
 
         setEvent(transformedEvent);
 
-        const stored = localStorage.getItem('registeredEvents') || '[]';
-        const registeredEvents = JSON.parse(stored);
-        setIsRegistered(registeredEvents.includes(transformedEvent.id));
+        const listRes = await SiteApiService.getAllEvents();
+        if (listRes.success && Array.isArray(listRes.data)) {
+          const others = listRes.data.filter(
+            (e) => e.id !== transformedEvent.id && e.isActive !== false
+          );
+          const sameCampaign =
+            transformedEvent.campaignId &&
+            others.filter((e) => e.campaignId === transformedEvent.campaignId);
+          const pool =
+            sameCampaign && sameCampaign.length > 0 ? sameCampaign : others;
+          const mapped = pool
+            .sort(
+              (a, b) =>
+                new Date(a.eventDate || 0).getTime() -
+                new Date(b.eventDate || 0).getTime()
+            )
+            .slice(0, 5)
+            .map((e) => ({
+              id: e.id,
+              slug: e.slug,
+              title: e.title,
+              image: e.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
+              date: e.eventDate
+                ? new Date(e.eventDate).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : '',
+            }));
+          setRelatedEvents(mapped);
+        } else {
+          setRelatedEvents([]);
+        }
       } catch (e) {
         setError(e.message || 'An error occurred while loading the event');
       } finally {
@@ -149,22 +176,6 @@ const EventDetails = ({ params }) => {
     );
   }
 
-  const relatedEvents = [
-    {
-      id: 3,
-      title: 'Hygiene Education Workshop',
-      image:
-        '/images/campains/Sponsor_for_Hygienic_Living_Program/titleimage.jpg',
-      date: 'November 22, 2024',
-    },
-    {
-      id: 4,
-      title: 'Youth Awareness Program',
-      image: '/images/campains/Self_Medication_Drug_Abuse/titleImage.jpg',
-      date: 'December 5, 2024',
-    },
-  ];
-
   const heroStatusClass = [
     'px-2 py-1 rounded-full text-sm font-semibold',
     event.status === 'Completed'
@@ -187,28 +198,6 @@ const EventDetails = ({ params }) => {
 
   return (
     <div className="min-h-screen bg-[#fcf9e3]">
-      {showThankYou && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-8 text-center max-w-sm border border-[#f3e1a5] shadow-xl">
-            <div className="text-green-500 text-5xl mb-4">✓</div>
-            <h3 className="text-2xl font-bold text-[#222222] mb-2 font-playfair">
-              Thank You!
-            </h3>
-            <p className="text-gray-600 mb-6 font-poppins">
-              Your registration has been submitted successfully. We will contact
-              you shortly with further details.
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowThankYou(false)}
-              className="bg-[#6D190D] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#8B2317] transition-colors font-poppins"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Hero Section */}
       <section className="relative">
         <div className="relative h-96 md:h-[500px] overflow-hidden">
@@ -274,9 +263,9 @@ const EventDetails = ({ params }) => {
                           {paragraph}
                         </p>
                       ))
-                    ) : (
+                    ) : event.fullDescription ? (
                       <p>{event.fullDescription}</p>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
@@ -468,136 +457,18 @@ const EventDetails = ({ params }) => {
                     </div>
                   </div>
 
-                  {event.isUpcoming && (
+                  {!event.isPast && event.registrationEnabled && (
                     <div className="space-y-4">
-                      <button
-                        type="button"
-                        onClick={() => !isRegistered && setShowRegistrationModal(true)}
-                        disabled={isRegistered}
-                        className={[
-                          'w-full text-white py-3 rounded-lg font-semibold transition-colors font-poppins',
-                          isRegistered
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-[#6D190D] hover:bg-[#8B2317]',
-                        ].join(' ')}
+                      <Link
+                        href={`/events/register?event=${encodeURIComponent(event.slug || event.id)}`}
+                        className="block w-full text-center text-white py-3 rounded-lg font-semibold transition-colors font-poppins bg-[#6D190D] hover:bg-[#8B2317]"
                       >
-                        {isRegistered ? 'Registered ✓' : 'Register Now'}
-                      </button>
-
-                      {showRegistrationModal && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-                            <div className="flex justify-between items-center mb-4">
-                              <h3 className="text-xl font-bold text-[#222222] font-playfair">
-                                Event Registration
-                              </h3>
-                              <button
-                                type="button"
-                                onClick={() => setShowRegistrationModal(false)}
-                                className="text-gray-500 hover:text-gray-700"
-                              >
-                                ✕
-                              </button>
-                            </div>
-
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                const stored =
-                                  localStorage.getItem('registeredEvents') || '[]';
-                                const registeredEvents = JSON.parse(stored);
-                                if (!registeredEvents.includes(event.id)) {
-                                  registeredEvents.push(event.id);
-                                  localStorage.setItem(
-                                    'registeredEvents',
-                                    JSON.stringify(registeredEvents),
-                                  );
-                                }
-                                setShowRegistrationModal(false);
-                                setShowThankYou(true);
-                                setIsRegistered(true);
-                                setRegistrationData({
-                                  name: '',
-                                  number: '',
-                                  email: '',
-                                });
-                              }}
-                            >
-                              <div className="mb-4">
-                                <label className="block text-gray-700 mb-2 font-poppins">
-                                  Full Name *
-                                </label>
-                                <input
-                                  type="text"
-                                  required
-                                  value={registrationData.name}
-                                  onChange={(e) =>
-                                    setRegistrationData({
-                                      ...registrationData,
-                                      name: e.target.value,
-                                    })
-                                  }
-                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFD700] focus:border-transparent font-poppins"
-                                  placeholder="Enter your full name"
-                                />
-                              </div>
-
-                              <div className="mb-4">
-                                <label className="block text-gray-700 mb-2 font-poppins">
-                                  Phone Number *
-                                </label>
-                                <input
-                                  type="tel"
-                                  required
-                                  value={registrationData.number}
-                                  onChange={(e) =>
-                                    setRegistrationData({
-                                      ...registrationData,
-                                      number: e.target.value,
-                                    })
-                                  }
-                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFD700] focus:border-transparent font-poppins"
-                                  placeholder="Enter your phone number"
-                                />
-                              </div>
-
-                              <div className="mb-6">
-                                <label className="block text-gray-700 mb-2 font-poppins">
-                                  Email Address *
-                                </label>
-                                <input
-                                  type="email"
-                                  required
-                                  value={registrationData.email}
-                                  onChange={(e) =>
-                                    setRegistrationData({
-                                      ...registrationData,
-                                      email: e.target.value,
-                                    })
-                                  }
-                                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#FFD700] focus:border-transparent font-poppins"
-                                  placeholder="Enter your email address"
-                                />
-                              </div>
-
-                              <div className="flex gap-3">
-                                <button
-                                  type="submit"
-                                  className="flex-1 bg-[#6D190D] text-white py-3 rounded-lg font-semibold hover:bg-[#8B2317] transition-colors font-poppins"
-                                >
-                                  Submit Registration
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowRegistrationModal(false)}
-                                  className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors font-poppins"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </form>
-                          </div>
-                        </div>
+                        Register for event
+                      </Link>
+                      {Number(event.registrationFee) > 0 && (
+                        <p className="text-xs text-gray-500 text-center font-poppins">
+                          Registration fee: ₹{Number(event.registrationFee).toLocaleString('en-IN')}
+                        </p>
                       )}
                     </div>
                   )}
@@ -614,37 +485,45 @@ const EventDetails = ({ params }) => {
                   )}
                 </div>
 
-                {/* Related Events */}
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-                  <h3 className="text-xl font-bold text-[#222222] mb-4 font-playfair">
-                    Related Events
-                  </h3>
-                  <div className="space-y-4">
-                    {relatedEvents.map((related) => (
-                      <Link
-                        key={related.id}
-                        href={`/events/${related.id}`}
-                        className="block group"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={related.image}
-                            alt={related.title}
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
-                          <div>
-                            <h4 className="font-semibold text-[#222222] group-hover:text-[#6D190D] transition-colors font-poppins">
-                              {related.title}
-                            </h4>
-                            <p className="text-sm text-gray-600 font-poppins">
-                              {related.date}
-                            </p>
+                {/* Other events (API — same campaign when possible) */}
+                {relatedEvents.length > 0 && (
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+                    <h3 className="text-xl font-bold text-[#222222] mb-4 font-playfair">
+                      More events
+                    </h3>
+                    <div className="space-y-4">
+                      {relatedEvents.map((related) => (
+                        <Link
+                          key={related.id}
+                          href={`/events/${related.slug || related.id}`}
+                          className="block group"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <img
+                              src={related.image}
+                              alt={related.title}
+                              className="w-16 h-16 rounded-lg object-cover"
+                            />
+                            <div>
+                              <h4 className="font-semibold text-[#222222] group-hover:text-[#6D190D] transition-colors font-poppins">
+                                {related.title}
+                              </h4>
+                              {related.date ? (
+                                <p className="text-sm text-gray-600 font-poppins">{related.date}</p>
+                              ) : null}
+                            </div>
                           </div>
-                        </div>
-                      </Link>
-                    ))}
+                        </Link>
+                      ))}
+                    </div>
+                    <Link
+                      href="/events"
+                      className="mt-4 inline-block text-sm font-semibold text-[#6D190D] hover:underline font-poppins"
+                    >
+                      View all events
+                    </Link>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

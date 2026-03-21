@@ -14,7 +14,9 @@ export default function CreateEventPage() {
     eventDate: '',
     location: '',
     campaignId: '',
-    isActive: true
+    isActive: true,
+    registrationEnabled: false,
+    registrationFee: '0'
   })
   const [content, setContent] = useState({
     about: [''],
@@ -109,6 +111,13 @@ export default function CreateEventPage() {
       setError('Location is required')
       return false
     }
+    if (formData.registrationEnabled) {
+      const fee = parseFloat(String(formData.registrationFee).replace(/,/g, ''))
+      if (Number.isNaN(fee) || fee < 0) {
+        setError('Registration fee must be a number ≥ 0')
+        return false
+      }
+    }
     return true
   }
 
@@ -127,9 +136,16 @@ export default function CreateEventPage() {
       
       // Add basic fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== '' && value !== null) {
-          formDataObj.append(key, value)
+        if (value === '' || value === null) return
+        if (key === 'registrationEnabled') {
+          formDataObj.append(key, value ? 'true' : 'false')
+          return
         }
+        if (key === 'registrationFee') {
+          formDataObj.append(key, String(value))
+          return
+        }
+        formDataObj.append(key, value)
       })
 
       // Add content as JSON
@@ -328,6 +344,40 @@ export default function CreateEventPage() {
                     Active Event
                   </label>
                 </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="registrationEnabled"
+                    id="registrationEnabled"
+                    checked={formData.registrationEnabled}
+                    onChange={handleInputChange}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="registrationEnabled" className="ml-2 block text-sm text-gray-700">
+                    Allow registration
+                  </label>
+                </div>
+
+                {formData.registrationEnabled && (
+                  <div>
+                    <label htmlFor="registrationFee" className="block text-sm font-medium text-gray-700 mb-1">
+                      Registration fee (₹)
+                    </label>
+                    <input
+                      type="number"
+                      name="registrationFee"
+                      id="registrationFee"
+                      min="0"
+                      step="1"
+                      value={formData.registrationFee}
+                      onChange={handleInputChange}
+                      className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0 for free"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">Use 0 for free registration. Public form will match this amount.</p>
+                  </div>
+                )}
               </div>
 
               {/* Content Sections Column */}

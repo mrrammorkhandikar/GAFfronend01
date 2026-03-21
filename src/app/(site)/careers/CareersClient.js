@@ -12,13 +12,6 @@ const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportuniti
   const volunteerOpportunities = initialVolunteerOpportunities || [];
   const careerOpportunities = initialCareerOpportunities || [];
   
-  const [careerStats, setCareerStats] = useState([
-    { number: '800+', label: 'Active Volunteers' },
-    { number: '25+', label: 'Cities Served' },
-    { number: '50+', label: 'Ongoing Projects' },
-    { number: '8', label: 'Years Experience' },
-  ]);
-  
   // Volunteer form state
   const [volunteerFormData, setVolunteerFormData] = useState({
     fullName: '',
@@ -185,20 +178,6 @@ const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportuniti
               Be part of a passionate team working towards social impact. Whether you're looking for 
               volunteer opportunities or professional growth, we have roles that match your skills and interests.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {careerStats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl font-bold text-[#6D190D] mb-2 font-playfair">{stat.number}</div>
-                <div className="text-gray-600 font-poppins">{stat.label}</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

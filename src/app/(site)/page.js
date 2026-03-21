@@ -6,18 +6,9 @@ import GetInvolved from '@/components/Hero/GetInvolved';
 import AboutUs from '@/components/Hero/AboutUs';
 import Campaigns from '@/components/Hero/Campaigns';
 import Events from '@/components/Hero/Events';
-import Team from '@/components/Hero/Team';
 import CallToAction from '@/components/Hero/CallToAction';
-import { Heart, Users, Globe, Award } from 'lucide-react';
 
 export default function Home() {
-  const stats = [
-    { icon: Heart, number: '15,000+', label: 'Children Educated' },
-    { icon: Users, number: '800+', label: 'Volunteers' },
-    { icon: Globe, number: '25+', label: 'Cities Served' },
-    { icon: Award, number: '8', label: 'Years of Service' },
-  ];
-
   const programs = [
     {
       title: 'Education for Underprivileged Children',
@@ -74,7 +65,6 @@ export default function Home() {
       <AboutUs />
       <Campaigns />
       <Events />
-      <Team />
       <CallToAction />
     </div>
   );

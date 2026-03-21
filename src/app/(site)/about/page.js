@@ -1,18 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Heart, Users, Globe, Award } from 'lucide-react';
+import { Heart, Users, Globe } from 'lucide-react';
 import Link from 'next/link';
+import Team from '@/components/Hero/Team';
 import SiteApiService from '@/app/services/site-api';
 
 const About = () => {
-  const [stats, setStats] = useState([
-    { icon: Heart, number: '15,000+', label: 'Children Educated' },
-    { icon: Users, number: '800+', label: 'Volunteers' },
-    { icon: Globe, number: '25+', label: 'Cities Served' },
-    { icon: Award, number: '8', label: 'Years of Service' },
-  ]);
-  
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -136,17 +130,15 @@ const About = () => {
             <div className="bg-white p-8 rounded-xl shadow-md">
               <div className="text-2xl font-bold text-[#6D190D] mb-4 font-playfair">The Growth</div>
               <p className="text-gray-600 font-poppins">
-                Over the years, we expanded our reach to 25+ cities, conducted over 50 health camps, and educated 
-                thousands of children. Our programs evolved to include dental care, hygiene education, and 
-                drug awareness campaigns.
+                Over the years we expanded across more communities, added health camps, and grew learning and
+                awareness programmes—including dental care, hygiene education, and drug-awareness work.
               </p>
             </div>
             <div className="bg-white p-8 rounded-xl shadow-md">
               <div className="text-2xl font-bold text-[#6D190D] mb-4 font-playfair">Today & Tomorrow</div>
               <p className="text-gray-600 font-poppins">
-                Today, we continue to grow with the support of 800+ volunteers and partners. 
-                Our focus remains on sustainable development, community empowerment, and creating 
-                lasting positive change through education and healthcare.
+                Today we continue to grow with volunteers, supporters, and community networks. Our focus remains
+                on sustainable development, community empowerment, and lasting change through education and healthcare.
               </p>
             </div>
           </div>
@@ -180,33 +172,16 @@ const About = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-[#fcf9e3]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-[#FFD700] rounded-full mb-4">
-                    <Icon className="h-8 w-8 text-[#6D190D]" />
-                  </div>
-                  <div className="text-3xl font-bold text-[#6D190D] mb-2 font-playfair">{stat.number}</div>
-                  <div className="text-gray-600 font-poppins">{stat.label}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+      {/* Meet Our Leaders Section */}
+      <Team />
 
       {/* Volunteers Section */}
       <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-[#222222] mb-6 font-playfair">The Power of Volunteers</h2>
           <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto font-poppins">
-            Our volunteers are the heart of everything we do. With over 800 dedicated volunteers, 
-            we've been able to reach communities across India and create meaningful impact in countless lives.
+            Our volunteers are the heart of everything we do. Their time and skills help us reach communities
+            across India and create meaningful impact.
           </p>
           <p className="text-gray-600 mb-10 font-poppins">
             Volunteers contribute their time, skills, and passion to help us deliver healthcare services, 

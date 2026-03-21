@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import EventCard from './EventCard'; // Assuming EventCard is sibling or imported correctly
+import Link from 'next/link';
+import EventCard from './EventCard';
 import SiteApiService from '@/app/services/site-api';
+import { isRegistrationEnabled } from '@/lib/eventRegistration';
 
 // Sample Data for two identical cards as shown in the image
 const Events = () => {
@@ -41,8 +43,10 @@ const Events = () => {
               console.log(`=== Processing event ${index} ===`);
               console.log('Event data:', event);
               
+              const isPast = event.eventDate ? new Date(event.eventDate) < new Date() : false;
               const transformedEvent = {
                 id: event.id,
+                slug: event.slug,
                 imagePath: event.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
                 title: event.title,
                 time: event.eventDate ? new Date(event.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD',
@@ -50,6 +54,8 @@ const Events = () => {
                 description: event.description?.substring(0, 100) + '...' || 'Event description coming soon...',
                 dateDay: event.eventDate ? new Date(event.eventDate).getDate() : '01',
                 dateMonth: event.eventDate ? new Date(event.eventDate).toLocaleString('default', { month: 'short' }).toUpperCase() : 'JAN',
+                registrationEnabled: isRegistrationEnabled(event.registrationEnabled),
+                isPast,
               };
               
               console.log('Transformed event:', transformedEvent);
@@ -111,9 +117,9 @@ const Events = () => {
 
           {/* View More Button */}
           <div className="text-center mt-16">
-            <button className="py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg">
+            <Link href="/events" className="inline-block py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg">
               View More
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -145,9 +151,9 @@ const Events = () => {
 
           {/* View More Button */}
           <div className="text-center mt-16">
-            <button className="py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg">
+            <Link href="/events" className="inline-block py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg">
               View More
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -181,9 +187,12 @@ const Events = () => {
 
         {/* View More Button */}
         <div className="text-center mt-16">
-          <button className="py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg">
+          <Link
+            href="/events"
+            className="inline-block py-3 px-8 text-sm font-semibold uppercase tracking-wider rounded-md text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg"
+          >
             View More
-          </button>
+          </Link>
         </div>
       </div>
     </section>

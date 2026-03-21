@@ -2,16 +2,12 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const pathname = usePathname();
-  const isHomepage = pathname === '/';
 
-  // Detect scroll
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -58,8 +54,11 @@ export default function Header() {
               <motion.a
                 key={item}
                 href={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`}
-                // Force update for hydration mismatch fix
-                className={`text-sm font-medium transition-colors text-black hover:text-yellow-600`}
+                className={`text-sm font-medium transition-colors ${
+                  scrolled
+                    ? 'text-gray-800 hover:text-yellow-600'
+                    : 'text-white hover:text-yellow-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]'
+                }`}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + index * 0.1, duration: 0.4 }}
@@ -85,7 +84,7 @@ export default function Header() {
               className={`p-2 rounded-md focus:outline-none ${
                 scrolled
                   ? "text-gray-700 hover:text-black"
-                  : "text-yellow-400"
+                  : "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]"
               }`}
             >
               {!isOpen ? (
@@ -134,7 +133,7 @@ export default function Header() {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
             className={`md:hidden font-poppins shadow-lg backdrop-blur-md ${
-              scrolled || !isHomepage ? "bg-white/90" : "bg-black/90"
+              scrolled ? "bg-white/90" : "bg-black/90"
             }`}
           >
             <div className="px-4 pt-3 pb-5 space-y-3">
@@ -143,7 +142,7 @@ export default function Header() {
                   key={item}
                   href={`/${item.toLowerCase() === 'home' ? '' : item.toLowerCase()}`}
                   className={`block px-3 py-2 rounded-md text-base font-medium ${
-                    scrolled || !isHomepage
+                    scrolled
                       ? "text-gray-700 hover:text-black hover:bg-gray-50/50"
                       : "text-white hover:text-yellow-400"
                   }`}

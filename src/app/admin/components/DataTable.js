@@ -22,7 +22,9 @@ export default function DataTable({
   loading = false,
   searchable = true,
   filterable = false,
-  filters = []
+  filters = [],
+  renderActionsExtra = null,
+  onRowClick = null
 }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -42,9 +44,14 @@ export default function DataTable({
 
     // Custom filters
     if (Object.keys(activeFilters).length > 0) {
-      return Object.entries(activeFilters).every(([key, value]) => {
-        if (!value) return true
-        return item[key] === value
+      return Object.entries(activeFilters).every(([key, filterValue]) => {
+        if (!filterValue) return true
+        const itemValue = item[key]
+        // Select options are always strings; compare booleans with 'true'/'false'
+        if (filterValue === 'true' || filterValue === 'false') {
+          return itemValue === (filterValue === 'true')
+        }
+        return itemValue === filterValue
       })
     }
 
@@ -168,15 +175,24 @@ export default function DataTable({
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedData.map((item, index) => (
-                <tr key={item.id || index} className="hover:bg-gray-50">
+                <tr
+                  key={item.id || index}
+                  className={`hover:bg-gray-50 ${onRowClick ? 'cursor-pointer' : ''}`}
+                  onClick={() => onRowClick && onRowClick(item)}
+                >
                   {columns.map(column => (
                     <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {column.render ? column.render(item[column.key], item) : item[column.key]}
                     </td>
                   ))}
                   {actions.length > 0 && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
+                    <td
+                      className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex justify-end items-center gap-3">
+                        {renderActionsExtra && renderActionsExtra(item)}
+                        <div className="flex space-x-2">
                         {actions.map(action => (
                           <button
                             key={action.key}
@@ -194,6 +210,7 @@ export default function DataTable({
                             {action.type === 'delete' && <Trash2 className="h-4 w-4" />}
                           </button>
                         ))}
+                        </div>
                       </div>
                     </td>
                   )}

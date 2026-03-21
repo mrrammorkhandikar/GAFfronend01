@@ -2,19 +2,34 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
-const EventCard = ({ imagePath, title, time, location, description, dateDay, dateMonth }) => {
-  // Styles for the Playfair Display font (used until Tailwind config is fully working)
+const EventCard = ({
+  id,
+  slug,
+  imagePath,
+  title,
+  time,
+  location,
+  description,
+  dateDay,
+  dateMonth,
+  registrationEnabled = false,
+  isPast = false,
+}) => {
   const playfairStyle = { fontFamily: "'Playfair Display', serif" };
+  const isExternalImage = imagePath?.startsWith('http');
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden shadow-xl transform transition duration-300 hover:shadow-2xl h-[400px]">
       {/* Event Image - used as background for the card area */}
       <Image
         src={imagePath}
-        alt={title}
+        alt={title || 'Event'}
         fill
         className="object-cover rounded-2xl"
+        unoptimized={isExternalImage}
+        sizes="(max-width: 1024px) 100vw, 50vw"
       />
       
       {/* Content Overlay */}
@@ -48,10 +63,25 @@ const EventCard = ({ imagePath, title, time, location, description, dateDay, dat
           {description}
         </p>
 
-        {/* View Details Button */}
-        <button className="w-32 py-2 text-sm font-semibold rounded-full text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg font-poppins">
-          View Details
-        </button>
+        {/* View Details + Register */}
+        <div className="flex flex-wrap items-center gap-2">
+          {(slug || id) && (
+            <Link
+              href={`/events/${slug || id}`}
+              className="w-32 py-2 text-sm font-semibold rounded-full text-gray-800 bg-[#FFD700] transition-colors duration-200 hover:bg-[#E6C300] shadow-md hover:shadow-lg font-poppins inline-block text-center"
+            >
+              View Details
+            </Link>
+          )}
+          {!isPast && registrationEnabled && (slug || id) && (
+            <Link
+              href={`/events/register?event=${encodeURIComponent(slug || id)}`}
+              className="w-36 py-2 text-sm font-semibold rounded-full text-white bg-[#6D190D] transition-colors duration-200 hover:bg-[#5a140a] shadow-md hover:shadow-lg font-poppins inline-block text-center border border-white/30"
+            >
+              Register
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

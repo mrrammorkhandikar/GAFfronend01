@@ -1,23 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, User, Mail, Phone, Calendar, FileText } from 'lucide-react'
+import { ArrowLeft, Save, User, Mail, Phone, FileText } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
 import AdminApiService from '@/app/admin/services/admin-api'
 
 export default function CreateEventRegistrationPage() {
+  const [events, setEvents] = useState([])
   const [formData, setFormData] = useState({
     eventId: '',
     name: '',
     email: '',
-    phone: '',
-    organization: '',
-    notes: ''
+    mobile: '',
+    address: '',
+    amount: ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await AdminApiService.getEvents({ limit: 200, active: true })
+        if (res.success && Array.isArray(res.data)) setEvents(res.data)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    load()
+  }, [])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -43,6 +56,10 @@ export default function CreateEventRegistrationPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
       setError('Please enter a valid email address')
+      return false
+    }
+    if (!formData.mobile.trim()) {
+      setError('Mobile number is required')
       return false
     }
     return true
@@ -127,9 +144,11 @@ export default function CreateEventRegistrationPage() {
                     className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Select an event</option>
-                    <option value="event-1">Annual Charity Gala 2024</option>
-                    <option value="event-2">Community Health Fair</option>
-                    <option value="event-3">Education Workshop Series</option>
+                    {events.map((ev) => (
+                      <option key={ev.id} value={ev.id}>
+                        {ev.title}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -238,12 +257,12 @@ export default function CreateEventRegistrationPage() {
                         <p className="font-medium">{formData.email || 'Not provided'}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Phone</p>
-                        <p className="font-medium">{formData.phone || 'Not provided'}</p>
+                        <p className="text-gray-500">Mobile</p>
+                        <p className="font-medium">{formData.mobile || 'Not provided'}</p>
                       </div>
                       <div>
-                        <p className="text-gray-500">Organization</p>
-                        <p className="font-medium">{formData.organization || 'Not provided'}</p>
+                        <p className="text-gray-500">Fee (₹)</p>
+                        <p className="font-medium">{formData.amount || 'Event default'}</p>
                       </div>
                     </div>
                   </div>

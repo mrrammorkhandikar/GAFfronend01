@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
+import PartnersCollaborationForm from './PartnersCollaborationForm.js';
 
 export const metadata = {
   title: 'Partners | Guru Akanksha Foundation',
   description:
-    'Learn how organizations and individuals partner with Guru Akanksha Foundation to run health camps, education programs, and community events.',
+    'Health camps, education programmes, and community events with Guru Akanksha Foundation.',
 };
 
 export default async function PartnersPage() {
@@ -16,11 +17,11 @@ export default async function PartnersPage() {
     if (response.success) {
       partners = Array.isArray(response.data) ? response.data : [];
     } else {
-      error = response.message || 'Failed to load partners';
+      error = response.message || 'Failed to load this page';
     }
   } catch (e) {
     console.error('Error loading partners:', e);
-    error = 'An error occurred while loading partners';
+    error = 'An error occurred while loading this page';
   }
 
   const featured = partners.filter((p) => p.isFeatured);
@@ -33,107 +34,76 @@ export default async function PartnersPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-10 items-center">
           <div>
             <p className="font-poppins uppercase text-xs md:text-sm tracking-[0.3em] text-[#D4A71C] mb-3">
-              Partners in impact
+              Impact & collaboration
             </p>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#222222] font-playfair mb-4 leading-tight">
-              Become a health & education impact partner.
+              Health, education, and community—together.
             </h1>
             <p className="text-sm md:text-base text-gray-700 font-poppins leading-relaxed mb-4">
-              Join hospitals, clinics, schools, and mission‑driven companies who co‑create health
-              camps, drug‑awareness drives, and learning programs with Guru Akanksha Foundation.
+              Hospitals, clinics, schools, and mission-driven teams work with Guru Akanksha Foundation on health
+              camps, awareness drives, and learning programmes grounded in local needs.
             </p>
             <p className="text-sm md:text-base text-gray-700 font-poppins leading-relaxed mb-6">
-              From organizing a multi‑specialty camp with <span className="font-semibold">Zen Medical</span>
-              , to running our <span className="font-semibold">&ldquo;Healthy Smile&rdquo;</span>{' '}
-              dental program, we turn your expertise into concrete, trackable community outcomes.
+              From multi-specialty outreach to programmes like <span className="font-semibold">&ldquo;Healthy Smile&rdquo;</span>,
+              we focus on careful planning, dignified delivery, and clear communication with communities.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/contact"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#6D190D] text-white text-sm font-semibold font-poppins shadow hover:bg-[#8B2317]"
               >
-                Talk to our partnerships team
+                Talk to our team
               </Link>
               <Link
                 href="/events"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-[#D4A71C] text-[#6D190D] text-sm font-semibold font-poppins bg-white/80 hover:bg-[#fff5cc]"
               >
-                See live programs & events
+                See programmes & events
               </Link>
-            </div>
-
-            <div className="mt-8 space-y-2">
-              <p className="text-xs uppercase tracking-[0.25em] text-[#A67C00] font-poppins">
-                Trusted by partners like
-              </p>
-              <div className="flex flex-wrap gap-4 items-center text-xs md:text-sm font-poppins text-gray-700">
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-[#fcf9e3] border border-[#f3e1a5] flex items-center justify-center text-[10px] font-bold text-[#6D190D]">
-                    Z
-                  </span>
-                  Zen Medical Hospital
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-[#fcf9e3] border border-[#f3e1a5] flex items-center justify-center text-[10px] font-bold text-[#6D190D]">
-                    B
-                  </span>
-                  Bright Minds Coaching
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-full bg-[#fcf9e3] border border-[#f3e1a5] flex items-center justify-center text-[10px] font-bold text-[#6D190D]">
-                    A
-                  </span>
-                  Dr. Ananya Verma
-                </span>
-              </div>
             </div>
           </div>
 
           <div className="relative bg-white rounded-2xl shadow-lg border border-[#f3e1a5] overflow-hidden">
             <img
               src="/images/campains/Healthy_Smile_For_Underprivileged_Children/titleImage.jpg"
-              alt="Healthy Smile program"
+              alt="Healthy Smile programme"
               className="w-full h-52 md:h-64 object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-3 left-4 right-4">
               <p className="text-xs text-white font-poppins mb-1">
-                Partner‑led Healthy Smile dental camp
+                Healthy Smile dental outreach
               </p>
               <p className="text-sm font-semibold text-white font-poppins">
-                1500+ children screened across schools and communities
+                Screening and education in schools and communities
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How partnership works - moved content from original hero */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-[#222222] font-playfair mb-4">
-              How partnership with GAF works
+              How programmes come together
             </h2>
             <p className="text-sm md:text-base text-gray-700 font-poppins mb-4">
-              We keep things simple for busy medical teams, educators, and CSR leaders – from first
-              conversation to post‑event reporting.
+              We keep planning practical for medical teams, educators, and CSR leads—from first conversation to
+              follow-up after the day in the community.
             </p>
             <ul className="space-y-2 text-sm text-gray-700 font-poppins">
               <li>
-                <span className="font-semibold text-[#6D190D]">Design together:</span> We co‑create
-                a program that fits your expertise – medical camps, school health days, awareness
-                rallies, or learning labs.
+                <span className="font-semibold text-[#6D190D]">Design together:</span> We shape activities that fit
+                your strengths—camps, school health days, awareness sessions, or learning labs.
               </li>
               <li>
-                <span className="font-semibold text-[#6D190D]">Operate jointly:</span> GAF teams
-                handle mobilisation, permissions, and community coordination while your teams deliver
-                services.
+                <span className="font-semibold text-[#6D190D]">Operate jointly:</span> GAF supports mobilisation,
+                permissions, and community coordination while your teams deliver services.
               </li>
               <li>
-                <span className="font-semibold text-[#6D190D]">Share the story:</span> You receive a
-                simple impact snapshot with participant numbers, photos, and key outcomes, ready for
-                internal and external communication.
+                <span className="font-semibold text-[#6D190D]">Share outcomes:</span> You receive a concise snapshot
+                with photos and highlights, suitable for internal updates and external communication.
               </li>
             </ul>
           </div>
@@ -147,33 +117,32 @@ export default async function PartnersPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-3 left-4 right-4">
                 <p className="text-xs text-white font-poppins mb-1">
-                  Joint community health outreach
+                  Community health outreach
                 </p>
                 <p className="text-sm font-semibold text-white font-poppins">
-                  400+ people screened in a single day with partner doctors
+                  Joint screening days with volunteer clinicians
                 </p>
               </div>
             </div>
             <div className="flex items-center justify-between text-xs md:text-sm font-poppins text-gray-700 pt-2">
               <div>
-                <p className="font-semibold text-[#222222]">Multi‑city programs</p>
-                <p>Mumbai, Pune & expanding locations</p>
+                <p className="font-semibold text-[#222222]">Multi-location programmes</p>
+                <p>Across regions we serve</p>
               </div>
               <div>
-                <p className="font-semibold text-[#222222]">Repeat collaborations</p>
-                <p>Most partners return for new initiatives</p>
+                <p className="font-semibold text-[#222222]">Ongoing collaboration</p>
+                <p>Many teams join us for more than one initiative</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Why partners work with us */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-[#222222] font-playfair mb-3">
-              Why partners choose Guru Akanksha Foundation
+              Why teams work with Guru Akanksha Foundation
             </h2>
             <p className="text-sm md:text-base text-gray-700 font-poppins">
               We make it easy for medical institutions, educators, and mission-driven businesses to
@@ -189,7 +158,7 @@ export default async function PartnersPage() {
             <WhyCard
               image="/images/campains/Self_Medication_Drug_Abuse/titleImage.jpg"
               title="Help young people stay safe"
-              body="Co‑host awareness campaigns around self‑medication, substance abuse, and mental health with our field teams and school partners."
+              body="Co‑host awareness campaigns around self‑medication, substance abuse, and mental health with our field teams and schools."
             />
             <WhyCard
               image="/images/campains/Sponsor_for_Hygienic_Living_Program/titleimage.jpg"
@@ -200,12 +169,11 @@ export default async function PartnersPage() {
         </div>
       </section>
 
-      {/* Who we partner with */}
       <section className="py-16 bg-[#fcf9e3]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-[#222222] font-playfair mb-3">
-              Who we partner with
+              Who we work with
             </h2>
             <p className="text-sm md:text-base text-gray-700 font-poppins">
               Whether you are an institution or an individual expert, there is a way to collaborate
@@ -270,10 +238,10 @@ export default async function PartnersPage() {
               Coming Soon
             </p>
             <h2 className="text-3xl font-bold text-[#222222] mb-4 font-playfair">
-              Partner Showcases Are on Their Way
+              Stories Are on Their Way
             </h2>
             <p className="text-gray-600 font-poppins text-base max-w-lg mx-auto">
-              We are busy documenting the incredible work our partners do with us. Check back soon to see their stories, or reach out to start a new collaboration.
+              We are documenting collaborations and field work. Check back soon, or reach out if you would like to connect.
             </p>
             <Link
               href="/contact"
@@ -293,10 +261,10 @@ export default async function PartnersPage() {
               Coming Soon
             </p>
             <h2 className="text-3xl font-bold text-[#222222] mb-4 font-playfair">
-              Partner Showcases Are on Their Way
+              Stories Are on Their Way
             </h2>
             <p className="text-gray-600 font-poppins text-base max-w-lg mx-auto">
-              We are busy documenting the incredible work our partners do with us. Check back soon to see their stories, or reach out to start a new collaboration.
+              We are documenting collaborations and field work. Check back soon, or reach out if you would like to connect.
             </p>
             <Link
               href="/contact"
@@ -308,44 +276,39 @@ export default async function PartnersPage() {
         </section>
       ) : (
         <>
-          {/* What our partners get */}
           <section className="py-16 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
               <div className="text-center max-w-3xl mx-auto">
                 <h2 className="text-2xl md:text-3xl font-bold text-[#222222] font-playfair mb-3">
-                  What our partners get
+                  What you can expect
                 </h2>
                 <p className="text-sm md:text-base text-gray-700 font-poppins">
-                  Clear roles, strong on‑ground execution, and stories your teams can be proud of.
+                  Clear roles, strong on‑ground execution, and dignified storytelling from the field.
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm text-gray-700 font-poppins">
                 <div className="bg-[#fcf9e3] rounded-2xl border border-[#f3e1a5] p-5">
-                  <p className="font-semibold text-[#6D190D] mb-2">Program design support</p>
+                  <p className="font-semibold text-[#6D190D] mb-2">Programme design support</p>
                   <p>
-                    We help you scope realistic, high‑impact activities that fit your team&apos;s
-                    bandwidth and strengths.
+                    We help scope realistic, high‑impact activities that fit your team&apos;s bandwidth and strengths.
                   </p>
                 </div>
                 <div className="bg-[#fcf9e3] rounded-2xl border border-[#f3e1a5] p-5">
                   <p className="font-semibold text-[#6D190D] mb-2">On‑ground operations</p>
                   <p>
-                    Mobilisation, permissions, and community coordination are managed by our field
-                    teams.
+                    Mobilisation, permissions, and community coordination are managed by our field teams.
                   </p>
                 </div>
                 <div className="bg-[#fcf9e3] rounded-2xl border border-[#f3e1a5] p-5">
-                  <p className="font-semibold text-[#6D190D] mb-2">Impact snapshots</p>
+                  <p className="font-semibold text-[#6D190D] mb-2">Field snapshots</p>
                   <p>
-                    Simple reporting – participant numbers, photos, and key outcomes – ready to share
-                    with your leadership and stakeholders.
+                    Concise reporting with photos and highlights—ready to share with your leadership and stakeholders.
                   </p>
                 </div>
                 <div className="bg-[#fcf9e3] rounded-2xl border border-[#f3e1a5] p-5">
-                  <p className="font-semibold text-[#6D190D] mb-2">Long‑term relationships</p>
+                  <p className="font-semibold text-[#6D190D] mb-2">Long‑term collaboration</p>
                   <p>
-                    We look beyond one‑off events towards multi‑year partnerships and co‑branded
-                    initiatives.
+                    We look beyond single events toward sustained initiatives and co‑branded outreach where it fits.
                   </p>
                 </div>
               </div>
@@ -390,67 +353,29 @@ export default async function PartnersPage() {
               </div>
             </section>
           )}
-
-          {/* Final CTA band */}
-          <section className="py-16 bg-[#e8f5f2]">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-10 items-center">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-[#222222] font-playfair mb-3">
-                  Become a partner today
-                </h2>
-                <p className="text-sm md:text-base text-gray-700 font-poppins mb-4">
-                  Share a few details about your organization or practice, and our partnerships team
-                  will get in touch with formats that fit you – one‑day camps, recurring programs, or
-                  long‑term campaigns.
-                </p>
-                <ul className="list-disc list-inside text-xs md:text-sm text-gray-700 font-poppins space-y-1 mb-4">
-                  <li>Typical response time: within 3–5 working days.</li>
-                  <li>No obligation – we start with a conversation and a draft concept note.</li>
-                  <li>Available across Mumbai, Pune, and expanding cities.</li>
-                </ul>
-              </div>
-              <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 space-y-4">
-                <p className="text-sm font-semibold text-[#222222] font-poppins">
-                  Tell us how you&apos;d like to partner:
-                </p>
-                <div className="space-y-3 text-xs font-poppins">
-                  <input
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent"
-                    placeholder="Your name or organization"
-                  />
-                  <input
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent"
-                    placeholder="Email / phone"
-                  />
-                  <select className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent">
-                    <option value="">How would you like to partner?</option>
-                    <option>Host a health camp</option>
-                    <option>Run awareness sessions</option>
-                    <option>Support education programs</option>
-                    <option>CSR / funding partnership</option>
-                    <option>Volunteer as an individual</option>
-                  </select>
-                  <textarea
-                    rows={3}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFD700] focus:border-transparent"
-                    placeholder="Share a few lines about your idea or context (optional)"
-                  />
-                </div>
-                <p className="text-[10px] text-gray-500 font-poppins">
-                  This mini form is just for illustration. To send a real enquiry, please use our main
-                  contact form.
-                </p>
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center justify-center w-full px-4 py-2 rounded-lg bg-[#6D190D] text-white text-sm font-semibold font-poppins hover:bg-[#8B2317]"
-                >
-                  Go to full partnership form
-                </Link>
-              </div>
-            </div>
-          </section>
         </>
       )}
+
+      {/* Final CTA band — shown for every visitor (same inbox as /contact) */}
+      <section className="py-16 bg-[#e8f5f2]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-10 items-center">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold text-[#222222] font-playfair mb-3">
+              Get involved today
+            </h2>
+            <p className="text-sm md:text-base text-gray-700 font-poppins mb-4">
+              Share a few details about your organization or practice, and our team will get in touch with formats
+              that fit you—single-day camps, recurring programmes, or longer campaigns.
+            </p>
+            <ul className="list-disc list-inside text-xs md:text-sm text-gray-700 font-poppins space-y-1 mb-4">
+              <li>Typical response time: within 3–5 working days.</li>
+              <li>No obligation – we start with a conversation and a draft concept note.</li>
+              <li>Available across Mumbai, Pune, and expanding cities.</li>
+            </ul>
+          </div>
+          <PartnersCollaborationForm />
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="py-20 bg-[#fcf9e3]">
@@ -462,13 +387,14 @@ export default async function PartnersPage() {
           <div className="relative grid grid-cols-1 md:grid-cols-2 gap-10 p-10 md:p-14 text-white">
             <div>
               <p className="font-poppins uppercase text-xs tracking-[0.25em] mb-3 text-[#FFD700]">
-                Ready to Partner?
+                Ready to connect?
               </p>
               <h2 className="text-3xl md:text-4xl font-bold mb-4 font-playfair">
-                Talk to Our Partnerships Team
+                Talk to our team
               </h2>
               <p className="text-sm md:text-base text-gray-100 max-w-md font-poppins">
-                Interested in collaborating? Whether you're a hospital, school, NGO, or CSR team, our partnerships team is ready to explore how we can make an impact together.
+                Interested in collaborating? Whether you represent a hospital, school, NGO, or CSR initiative, we are
+                glad to explore how we can work together.
               </p>
             </div>
             <div className="flex items-center md:justify-end">
@@ -538,10 +464,10 @@ function PartnerCard({ partner }) {
       <div className="mt-auto flex items-center justify-between text-xs font-poppins">
         {partner.isFeatured ? (
           <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#fcf9e3] text-[#6D190D] border border-[#f3e1a5]">
-            Featured partner
+            Featured
           </span>
         ) : (
-          <span className="text-gray-400">Long-term partner</span>
+          <span className="text-gray-400">Collaborator</span>
         )}
         <span className="text-[#6D190D] font-semibold group-hover:underline">
           Read their story →

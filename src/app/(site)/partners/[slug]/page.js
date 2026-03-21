@@ -1,40 +1,51 @@
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
 
+async function resolveRouteParams(params) {
+  return typeof params?.then === 'function' ? await params : params;
+}
+
 export async function generateMetadata({ params }) {
-  const { slug } = params;
+  const { slug } = await resolveRouteParams(params);
+  if (!slug) {
+    return { title: 'Collaboration | Guru Akanksha Foundation' };
+  }
   try {
     const response = await SiteApiService.getPartnerBySlug(slug);
     if (response.success && response.data) {
       return {
-        title: `${response.data.name} | GAF Partner`,
-        description: response.data.shortDescription || 'Partnership story with Guru Akanksha Foundation.',
+        title: `${response.data.name} | Guru Akanksha Foundation`,
+        description: response.data.shortDescription || 'Working with Guru Akanksha Foundation.',
       };
     }
   } catch {
     // ignore and fall back
   }
   return {
-    title: 'Partner | Guru Akanksha Foundation',
+    title: 'Collaboration | Guru Akanksha Foundation',
   };
 }
 
 export default async function PartnerStoryPage({ params }) {
-  const { slug } = params;
+  const { slug } = await resolveRouteParams(params);
 
   let partner = null;
   let error = null;
 
   try {
-    const response = await SiteApiService.getPartnerBySlug(slug);
-    if (response.success && response.data) {
-      partner = response.data;
+    if (!slug) {
+      error = 'This profile could not be found';
     } else {
-      error = response.message || 'Partner not found';
+      const response = await SiteApiService.getPartnerBySlug(slug);
+      if (response.success && response.data) {
+        partner = response.data;
+      } else {
+        error = response.message || 'This profile could not be found';
+      }
     }
   } catch (e) {
     console.error('Error loading partner story:', e);
-    error = 'An error occurred while loading this partner story';
+    error = 'An error occurred while loading this page';
   }
 
   if (error || !partner) {
@@ -42,14 +53,14 @@ export default async function PartnerStoryPage({ params }) {
       <div className="min-h-screen flex items-center justify-center bg-[#fcf9e3]">
         <div className="text-center px-4">
           <h1 className="text-2xl font-bold text-[#222222] mb-2 font-playfair">
-            Partner story not available
+            This story is not available
           </h1>
           <p className="text-gray-600 font-poppins mb-4 text-sm">{error}</p>
           <Link
             href="/partners"
             className="inline-flex items-center px-5 py-2.5 rounded-lg bg-[#6D190D] text-white text-sm font-semibold font-poppins hover:bg-[#8B2317]"
           >
-            Back to Partners
+            Back to overview
           </Link>
         </div>
       </div>
@@ -76,10 +87,10 @@ export default async function PartnerStoryPage({ params }) {
 
   const heroStatus =
     partner.isActive && partner.isFeatured
-      ? 'Active • Featured partnership'
+      ? 'Active • Featured collaboration'
       : partner.isActive
-      ? 'Active partnership'
-      : 'Past / Inactive partnership';
+      ? 'Active collaboration'
+      : 'Past / inactive';
 
   return (
     <div className="min-h-screen bg-[#fcf9e3]">
@@ -105,7 +116,7 @@ export default async function PartnerStoryPage({ params }) {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-[#ffe9a8] font-poppins mb-2">
-                    Partner story
+                    Collaboration spotlight
                   </p>
                   <h1 className="text-2xl md:text-4xl font-bold text-white font-playfair mb-2 max-w-2xl">
                     {partner.name}
@@ -128,13 +139,13 @@ export default async function PartnerStoryPage({ params }) {
                     href="/partners"
                     className="inline-flex items-center px-4 py-2 rounded-lg border border-white/60 text-white text-xs md:text-sm font-semibold font-poppins hover:bg-white/10"
                   >
-                    Back to all partners
+                    Back to overview
                   </Link>
                   <Link
                     href="/contact"
                     className="inline-flex items-center px-4 py-2 rounded-lg bg-[#FFD700] text-[#6D190D] text-xs md:text-sm font-semibold font-poppins shadow hover:bg-[#f2c800]"
                   >
-                    Explore partnership
+                    Explore collaboration
                   </Link>
                 </div>
               </div>
@@ -165,7 +176,7 @@ export default async function PartnerStoryPage({ params }) {
               {programs.length > 0 && (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
                   <h2 className="text-xl font-bold text-[#222222] mb-3 font-playfair">
-                    Programs & events with this partner
+                    Programmes & events together
                   </h2>
                   <ul className="list-disc list-inside space-y-2 text-sm text-gray-700 font-poppins">
                     {programs.map((item, idx) => (
@@ -208,7 +219,7 @@ export default async function PartnerStoryPage({ params }) {
 
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3">
                 <h3 className="text-sm font-semibold text-[#222222] font-playfair">
-                  Partner with Guru Akanksha Foundation
+                  Work with Guru Akanksha Foundation
                 </h3>
                 <p className="text-xs text-gray-600 font-poppins">
                   Inspired by this story? Let&apos;s explore how your organization or practice can
@@ -218,7 +229,7 @@ export default async function PartnerStoryPage({ params }) {
                   href="/contact"
                   className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#6D190D] text-white text-xs font-semibold font-poppins hover:bg-[#8B2317]"
                 >
-                  Talk to our partnerships team
+                  Talk to our team
                 </Link>
               </div>
             </div>

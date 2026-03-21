@@ -1,20 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { 
-  Users, 
-  Calendar, 
-  HandHeart, 
-  Briefcase, 
-  CreditCard, 
+import Link from 'next/link'
+import {
+  Calendar,
+  HandHeart,
+  Briefcase,
+  CreditCard,
   MessageCircle,
   TrendingUp,
   TrendingDown,
-  IndianRupee,
   UserPlus
 } from 'lucide-react'
 import AdminLayout from './components/AdminLayout.js'
 import AdminApiService from './services/admin-api.js'
+
+function formatInr(n) {
+  const x = Number(n)
+  if (Number.isNaN(x)) return '₹0'
+  return `₹${x.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -25,27 +30,40 @@ export default function AdminDashboard() {
     donations: 0,
     contactForms: 0
   })
+  const [recentCampaigns, setRecentCampaigns] = useState([])
+  const [recentDonations, setRecentDonations] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchStats()
+    fetchDashboard()
   }, [])
 
-  const fetchStats = async () => {
-    console.log('Fetching dashboard stats...');
+  const fetchDashboard = async () => {
     try {
-      const result = await AdminApiService.getDashboardStats()
-      console.log('API result:', result);
-      if (result.success) {
-        setStats(result.data)
-        console.log('Stats updated:', result.data);
+      const [statsRes, campRes, donRes] = await Promise.all([
+        AdminApiService.getDashboardStats(),
+        AdminApiService.getCampaigns({ limit: 5, page: 1 }),
+        AdminApiService.getDonations({ limit: 5, page: 1 })
+      ])
+
+      if (statsRes.success && statsRes.data) {
+        setStats(statsRes.data)
+      }
+
+      if (campRes.success && Array.isArray(campRes.data)) {
+        setRecentCampaigns(campRes.data)
       } else {
-        console.error('API returned failure:', result);
+        setRecentCampaigns([])
+      }
+
+      if (donRes.success && Array.isArray(donRes.data)) {
+        setRecentDonations(donRes.data)
+      } else {
+        setRecentDonations([])
       }
     } catch (error) {
-      console.error('Error fetching stats:', error)
+      console.error('Error fetching dashboard:', error)
     } finally {
-      console.log('Setting loading to false');
       setLoading(false)
     }
   }
@@ -189,87 +207,106 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Activity — live from API */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Campaigns */}
           <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
+            <div className="px-4 py-5 sm:px-6 flex items-center justify-between gap-4">
               <h3 className="text-lg font-medium text-[#222222] font-playfair">Recent Campaigns</h3>
+              <Link
+                href="/admin/campaigns"
+                className="text-sm font-medium text-[#6D190D] hover:underline font-poppins shrink-0"
+              >
+                View all
+              </Link>
             </div>
             <div className="border-t border-gray-200">
-              <ul className="divide-y divide-gray-200">
-                <li className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-[#6D190D] truncate font-poppins">
-                        Global Health Initiative
-                      </p>
-                      <p className="text-sm text-gray-600 font-poppins">
-                        Active • ₹35,000 raised
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFD700] text-[#6D190D] font-poppins">
-                      Active
-                    </span>
-                  </div>
-                </li>
-                <li className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-[#6D190D] truncate font-poppins">
-                        Education for All
-                      </p>
-                      <p className="text-sm text-gray-600 font-poppins">
-                        Active • ₹45,000 raised
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFD700] text-[#6D190D] font-poppins">
-                      Active
-                    </span>
-                  </div>
-                </li>
-              </ul>
+              {recentCampaigns.length === 0 ? (
+                <p className="px-4 py-6 sm:px-6 text-sm text-gray-500 font-poppins">No campaigns found.</p>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {recentCampaigns.map((c) => {
+                    const raised = c.raisedAmount ?? 0
+                    const goal = c.amount
+                    const sub =
+                      goal != null
+                        ? `${formatInr(raised)} raised · goal ${formatInr(goal)}`
+                        : `${formatInr(raised)} raised`
+                    return (
+                      <li key={c.id} className="px-4 py-4 sm:px-6">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <Link
+                              href={`/admin/campaigns/${c.id}`}
+                              className="text-sm font-medium text-[#6D190D] truncate font-poppins hover:underline block"
+                            >
+                              {c.title}
+                            </Link>
+                            <p className="text-sm text-gray-600 font-poppins truncate">{sub}</p>
+                          </div>
+                          <span
+                            className={`inline-flex shrink-0 items-center px-2.5 py-0.5 rounded-full text-xs font-medium font-poppins ${
+                              c.isActive
+                                ? 'bg-[#FFD700] text-[#6D190D]'
+                                : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {c.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </div>
           </div>
 
-          {/* Recent Donations */}
           <div className="bg-white shadow rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
+            <div className="px-4 py-5 sm:px-6 flex items-center justify-between gap-4">
               <h3 className="text-lg font-medium text-[#222222] font-playfair">Recent Donations</h3>
+              <Link
+                href="/admin/donations"
+                className="text-sm font-medium text-[#6D190D] hover:underline font-poppins shrink-0"
+              >
+                View all
+              </Link>
             </div>
             <div className="border-t border-gray-200">
-              <ul className="divide-y divide-gray-200">
-                <li className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-[#222222] font-poppins">
-                        John Smith
-                      </p>
-                      <p className="text-sm text-gray-600 font-poppins">
-                        ₹250.00 • One-time donation
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFD700] text-[#6D190D] font-poppins">
-                      Completed
-                    </span>
-                  </div>
-                </li>
-                <li className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-[#222222] font-poppins">
-                        Sarah Johnson
-                      </p>
-                      <p className="text-sm text-gray-600 font-poppins">
-                        ₹100.00 • Monthly supporter
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#FFD700] text-[#6D190D] font-poppins">
-                      Recurring
-                    </span>
-                  </div>
-                </li>
-              </ul>
+              {recentDonations.length === 0 ? (
+                <p className="px-4 py-6 sm:px-6 text-sm text-gray-500 font-poppins">No donations yet.</p>
+              ) : (
+                <ul className="divide-y divide-gray-200">
+                  {recentDonations.map((d) => {
+                    const name = d.donorName || 'Anonymous'
+                    const campaignBit = d.campaign?.title ? ` · ${d.campaign.title}` : ''
+                    const status = (d.status || 'pending').toLowerCase()
+                    const statusClass =
+                      status === 'completed'
+                        ? 'bg-green-100 text-green-800'
+                        : status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-700'
+                    return (
+                      <li key={d.id} className="px-4 py-4 sm:px-6">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-[#222222] truncate font-poppins">{name}</p>
+                            <p className="text-sm text-gray-600 font-poppins truncate">
+                              {formatInr(d.amount)} {d.currency || 'INR'}
+                              {campaignBit}
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex shrink-0 items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize font-poppins ${statusClass}`}
+                          >
+                            {status}
+                          </span>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </div>
           </div>
         </div>

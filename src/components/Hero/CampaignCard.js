@@ -2,21 +2,24 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Reusable Card Component for a single campaign
-const CampaignCard = ({ imageSrc, title, raised, remaining, goal, progress }) => {
-  // Use a softer yellow for the card background
-  const cardBgColor = 'bg-white'; // Very light yellow/cream for the card background
-  
+const CampaignCard = ({ id, slug, imageSrc, title, raised, remaining, goal, progress }) => {
+  const cardBgColor = 'bg-white';
+  const isExternalImage = imageSrc?.startsWith('http');
+
   return (
     <div className={`rounded-xl shadow-lg overflow-hidden border border-gray-100 ${cardBgColor} w-124`}>
       {/* Campaign Image */}
-      <div className="h-80 overflow-hidden rounded-2xl relative">
+      <div className="h-80 overflow-hidden rounded-2xl relative bg-gray-100">
         <Image
           src={imageSrc}
-          alt={title}
+          alt={title || 'Campaign'}
           fill
           className="object-cover rounded-t-xl"
+          unoptimized={isExternalImage}
+          sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
 
@@ -66,12 +69,22 @@ const CampaignCard = ({ imageSrc, title, raised, remaining, goal, progress }) =>
 
         {/* Action Buttons */}
         <div className="flex justify-center gap-4">
-          <button className="bg-[#FFD700] text-gray-800 font-poppins font-semibold px-6 py-2 rounded-full hover:bg-[#E6C300] transition-colors shadow-md">
-            Donate Now
-          </button>
-          <button className="border-2 border-[#FFD700] text-[#D4A71C] font-poppins font-semibold px-6 py-2 rounded-full hover:bg-[#FFD700] hover:text-gray-800 transition-colors shadow-md">
-            Program Details
-          </button>
+          {(slug || id) && (
+            <>
+              <Link
+                href={`/campaigns/${slug || id}`}
+                className="bg-[#FFD700] text-gray-800 font-poppins font-semibold px-6 py-2 rounded-full hover:bg-[#E6C300] transition-colors shadow-md inline-block text-center"
+              >
+                Donate Now
+              </Link>
+              <Link
+                href={`/campaigns/${slug || id}`}
+                className="border-2 border-[#FFD700] text-[#D4A71C] font-poppins font-semibold px-6 py-2 rounded-full hover:bg-[#FFD700] hover:text-gray-800 transition-colors shadow-md inline-block text-center"
+              >
+                Program Details
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>

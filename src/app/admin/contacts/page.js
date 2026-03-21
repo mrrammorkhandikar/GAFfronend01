@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { format } from 'date-fns'
 import AdminLayout from '../components/AdminLayout.js'
 import DataTable from '../components/DataTable.js'
@@ -9,12 +9,10 @@ import AdminApiService from '../services/admin-api.js'
 export default function ContactsPage() {
   const [contacts, setContacts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [detailContact, setDetailContact] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
 
-  useEffect(() => {
-    fetchContacts()
-  }, [])
-
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     try {
       const result = await AdminApiService.getContactForms({ page: 1, limit: 100 })
       if (result.success) {
@@ -25,6 +23,31 @@ export default function ContactsPage() {
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    fetchContacts()
+  }, [fetchContacts])
+
+  const openContactDetail = async (contact) => {
+    setDetailContact(contact)
+    setDetailLoading(true)
+    try {
+      const result = await AdminApiService.getContactForm(contact.id)
+      if (result.success && result.data) {
+        setDetailContact(result.data)
+        fetchContacts()
+      }
+    } catch (error) {
+      console.error('Error loading contact:', error)
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
+  const closeContactDetail = () => {
+    setDetailContact(null)
+    setDetailLoading(false)
   }
 
   const handleStatusChange = async (contactId, newStatus) => {
@@ -100,15 +123,51 @@ export default function ContactsPage() {
       type: 'view'
     },
     {
-      key: 'replied',
-      label: 'Mark as Replied',
-      type: 'edit'
+      key: 'delete',
+      label: 'Delete',
+      type: 'delete'
     }
   ]
 
-  const handleAction = (action, contact) => {
-    handleStatusChange(contact.id, action)
+  const handleDelete = async (contact) => {
+    if (!window.confirm(`Delete this message from ${contact.name}?`)) return
+    try {
+      const result = await AdminApiService.deleteContactForm(contact.id)
+      if (result.success) {
+        fetchContacts()
+      } else {
+        alert('Failed to delete: ' + (result.message || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Error deleting contact:', error)
+      alert('An error occurred while deleting the message')
+    }
   }
+
+  const handleAction = (action, contact) => {
+    if (action === 'delete') {
+      handleDelete(contact)
+    } else {
+      handleStatusChange(contact.id, action)
+    }
+  }
+
+  const handleRepliedCheck = (contact, checked) => {
+    handleStatusChange(contact.id, checked ? 'replied' : 'read')
+  }
+
+  const renderActionsExtra = (contact) => (
+    <label className="inline-flex items-center gap-1.5 cursor-pointer select-none text-gray-700">
+      <input
+        type="checkbox"
+        checked={contact.status === 'replied'}
+        onChange={(e) => handleRepliedCheck(contact, e.target.checked)}
+        className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+        title="Mark as Replied"
+      />
+      <span className="text-xs font-medium">Replied</span>
+    </label>
+  )
 
   return (
     <AdminLayout>
@@ -126,6 +185,8 @@ export default function ContactsPage() {
           columns={columns}
           actions={actions}
           onAction={handleAction}
+          onRowClick={openContactDetail}
+          renderActionsExtra={renderActionsExtra}
           loading={loading}
           searchable={true}
           filterable={true}
@@ -217,6 +278,70 @@ export default function ContactsPage() {
             </div>
           </div>
         </div>
+
+        {detailContact && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-detail-title"
+            onClick={closeContactDetail}
+          >
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <h2 id="contact-detail-title" className="text-lg font-bold text-gray-900">
+                  Message details
+                </h2>
+                <button
+                  type="button"
+                  onClick={closeContactDetail}
+                  className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+
+              {detailLoading && (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+                </div>
+              )}
+
+              {!detailLoading && (
+                <dl className="space-y-3 text-sm text-black">
+                  <div>
+                    <dt className="text-gray-500">Status</dt>
+                    <dd className="font-medium capitalize">{detailContact.status}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Name</dt>
+                    <dd className="font-medium">{detailContact.name}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Email</dt>
+                    <dd className="font-mono text-xs break-all">{detailContact.email}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Subject</dt>
+                    <dd className="font-medium">{detailContact.subject}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Message</dt>
+                    <dd className="whitespace-pre-wrap text-gray-800 mt-1">{detailContact.message}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-gray-500">Received</dt>
+                    <dd>{format(new Date(detailContact.createdAt), 'PPpp')}</dd>
+                  </div>
+                </dl>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   )
