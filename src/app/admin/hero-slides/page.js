@@ -41,18 +41,16 @@ export default function HeroSlidesPage() {
   }
 
   const handleDelete = async (slide) => {
-    if (window.confirm('Are you sure you want to delete this slide?')) {
-      try {
-        const result = await AdminApiService.deleteHeroSlide(slide.id)
-        if (result.success) {
-          fetchSlides()
-        } else {
-          alert('Failed to delete: ' + (result.message || 'Unknown error'))
-        }
-      } catch (error) {
-        console.error('Error deleting slide:', error)
-        alert('An error occurred while deleting the slide')
+    try {
+      const result = await AdminApiService.deleteHeroSlide(slide.id)
+      if (result.success) {
+        fetchSlides()
+      } else {
+        alert('Failed to delete: ' + (result.message || 'Unknown error'))
       }
+    } catch (error) {
+      console.error('Error deleting slide:', error)
+      alert('An error occurred while deleting the slide')
     }
   }
 

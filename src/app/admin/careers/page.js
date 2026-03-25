@@ -43,18 +43,16 @@ export default function CareersPage() {
   }
 
   const handleDelete = async (career) => {
-    if (window.confirm(`Are you sure you want to delete "${career.title}"?`)) {
-      try {
-        const result = await AdminApiService.deleteCareer(career.id)
-        if (result.success) {
-          fetchCareers()
-        } else {
-          alert('Failed to delete career: ' + result.message)
-        }
-      } catch (error) {
-        console.error('Error deleting career:', error)
-        alert('An error occurred while deleting the career')
+    try {
+      const result = await AdminApiService.deleteCareer(career.id)
+      if (result.success) {
+        fetchCareers()
+      } else {
+        alert('Failed to delete career: ' + result.message)
       }
+    } catch (error) {
+      console.error('Error deleting career:', error)
+      alert('An error occurred while deleting the career')
     }
   }
 
@@ -91,9 +89,9 @@ export default function CareersPage() {
     {
       key: 'applications',
       label: 'Applications',
-      render: (value) => (
+      render: (value, item) => (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {value?.length || 0} applications
+          {(item?._count?.applications ?? value?.length ?? 0)} applications
         </span>
       )
     },

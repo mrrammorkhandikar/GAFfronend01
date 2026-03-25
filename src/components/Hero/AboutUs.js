@@ -49,12 +49,12 @@ const AboutUs = () => {
               
               <div className="mt-8">
                 <motion.a 
-                  href="/careers"
+                  href="/about"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition-colors font-poppins inline-block"
                 >
-                  Join Us
+                  Read More
                 </motion.a>
               </div>
 

@@ -44,18 +44,16 @@ export default function EventsPage() {
   }
 
   const handleDelete = async (event) => {
-    if (window.confirm(`Are you sure you want to delete "${event.title}"?`)) {
-      try {
-        const result = await AdminApiService.deleteEvent(event.id)
-        if (result.success) {
-          fetchEvents()
-        } else {
-          alert('Failed to delete event: ' + result.message)
-        }
-      } catch (error) {
-        console.error('Error deleting event:', error)
-        alert('An error occurred while deleting the event')
+    try {
+      const result = await AdminApiService.deleteEvent(event.id)
+      if (result.success) {
+        fetchEvents()
+      } else {
+        alert('Failed to delete event: ' + result.message)
       }
+    } catch (error) {
+      console.error('Error deleting event:', error)
+      alert('An error occurred while deleting the event')
     }
   }
 

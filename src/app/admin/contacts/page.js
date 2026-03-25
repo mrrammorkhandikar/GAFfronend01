@@ -130,7 +130,6 @@ export default function ContactsPage() {
   ]
 
   const handleDelete = async (contact) => {
-    if (!window.confirm(`Delete this message from ${contact.name}?`)) return
     try {
       const result = await AdminApiService.deleteContactForm(contact.id)
       if (result.success) {

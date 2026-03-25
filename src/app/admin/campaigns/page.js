@@ -44,18 +44,16 @@ export default function CampaignsPage() {
   }
 
   const handleDelete = async (campaign) => {
-    if (window.confirm(`Are you sure you want to delete "${campaign.title}"?`)) {
-      try {
-        const result = await AdminApiService.deleteCampaign(campaign.id)
-        if (result.success) {
-          fetchCampaigns() // Refresh the list
-        } else {
-          alert('Failed to delete campaign: ' + result.message)
-        }
-      } catch (error) {
-        console.error('Error deleting campaign:', error)
-        alert('An error occurred while deleting the campaign')
+    try {
+      const result = await AdminApiService.deleteCampaign(campaign.id)
+      if (result.success) {
+        fetchCampaigns() // Refresh the list
+      } else {
+        alert('Failed to delete campaign: ' + result.message)
       }
+    } catch (error) {
+      console.error('Error deleting campaign:', error)
+      alert('An error occurred while deleting the campaign')
     }
   }
 

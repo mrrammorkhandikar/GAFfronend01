@@ -72,6 +72,12 @@ export default function DataTable({
   }
 
   const handleAction = (action, item) => {
+    const actionDef = actions.find((a) => a.key === action)
+    if (actionDef?.type === 'delete') {
+      const label = actionDef?.label || 'Delete'
+      const ok = window.confirm(`Are you sure you want to ${label.toLowerCase()} this item?`)
+      if (!ok) return
+    }
     if (onAction) {
       onAction(action, item)
     }

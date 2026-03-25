@@ -71,7 +71,7 @@ export default function CareerApplicationsPage() {
   }, [fetchApplications])
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this application?')) {
+    if (!window.confirm('Are you sure you want to delete this application?')) {
       return
     }
     

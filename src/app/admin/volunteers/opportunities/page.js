@@ -43,18 +43,16 @@ export default function VolunteerOpportunitiesPage() {
   }
 
   const handleDelete = async (opportunity) => {
-    if (window.confirm(`Are you sure you want to delete "${opportunity.title}"?`)) {
-      try {
-        const result = await AdminApiService.deleteVolunteerOpportunity(opportunity.id)
-        if (result.success) {
-          fetchOpportunities()
-        } else {
-          alert('Failed to delete opportunity: ' + result.message)
-        }
-      } catch (error) {
-        console.error('Error deleting opportunity:', error)
-        alert('An error occurred while deleting the opportunity')
+    try {
+      const result = await AdminApiService.deleteVolunteerOpportunity(opportunity.id)
+      if (result.success) {
+        fetchOpportunities()
+      } else {
+        alert('Failed to delete opportunity: ' + result.message)
       }
+    } catch (error) {
+      console.error('Error deleting opportunity:', error)
+      alert('An error occurred while deleting the opportunity')
     }
   }
 

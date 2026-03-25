@@ -44,18 +44,16 @@ export default function TeamPage() {
   }
 
   const handleDelete = async (member) => {
-    if (window.confirm(`Are you sure you want to delete "${member.name}"?`)) {
-      try {
-        const result = await AdminApiService.deleteTeamMember(member.id)
-        if (result.success) {
-          fetchTeamMembers()
-        } else {
-          alert('Failed to delete team member: ' + result.message)
-        }
-      } catch (error) {
-        console.error('Error deleting team member:', error)
-        alert('An error occurred while deleting the team member')
+    try {
+      const result = await AdminApiService.deleteTeamMember(member.id)
+      if (result.success) {
+        fetchTeamMembers()
+      } else {
+        alert('Failed to delete team member: ' + result.message)
       }
+    } catch (error) {
+      console.error('Error deleting team member:', error)
+      alert('An error occurred while deleting the team member')
     }
   }
 

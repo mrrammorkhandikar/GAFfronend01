@@ -45,18 +45,16 @@ export default function PartnersPage() {
   }
 
   const handleDelete = async (partner) => {
-    if (window.confirm(`Are you sure you want to delete "${partner.name}"?`)) {
-      try {
-        const result = await AdminApiService.deletePartner(partner.id)
-        if (result.success) {
-          fetchPartners()
-        } else {
-          alert('Failed to delete partner: ' + (result.message || 'Unknown error'))
-        }
-      } catch (error) {
-        console.error('Error deleting partner:', error)
-        alert('An error occurred while deleting the partner')
+    try {
+      const result = await AdminApiService.deletePartner(partner.id)
+      if (result.success) {
+        fetchPartners()
+      } else {
+        alert('Failed to delete partner: ' + (result.message || 'Unknown error'))
       }
+    } catch (error) {
+      console.error('Error deleting partner:', error)
+      alert('An error occurred while deleting the partner')
     }
   }
 
