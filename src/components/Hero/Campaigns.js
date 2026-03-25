@@ -21,8 +21,8 @@ const Campaigns = () => {
   
         
         if (response.success && campaignData) {
+          const now = Date.now()
 
-          
           // Transform the campaign data to match the expected format for CampaignCard
           let transformedCampaigns = [];
           
@@ -36,6 +36,9 @@ const Campaigns = () => {
               const raisedAmount = campaign.raisedAmount || 0;
               const remaining = Math.max(0, amount - raisedAmount);
               const progress = (amount > 0) ? Math.round((raisedAmount / amount) * 100) : 0;
+              const endTs = campaign.endDate ? new Date(campaign.endDate).getTime() : null
+              const startTs = campaign.startDate ? new Date(campaign.startDate).getTime() : null
+              const isCompletedByDate = endTs != null ? endTs < now : false
               
               const transformedCampaign = {
                 id: campaign.id,
@@ -46,6 +49,9 @@ const Campaigns = () => {
                 remaining: `Rs. ${remaining.toLocaleString()}`,
                 goal: `Rs. ${amount.toLocaleString()}`,
                 progress: progress,
+                _endTs: endTs,
+                _startTs: startTs,
+                _isCompletedByDate: isCompletedByDate,
               };
               
              
@@ -57,7 +63,15 @@ const Campaigns = () => {
             console.log('campaignData:', campaignData);
           }
 
-          setCampaigns(transformedCampaigns);
+          // Ongoing first (not ended), then completed
+          const ongoing = transformedCampaigns
+            .filter((c) => !c._isCompletedByDate)
+            .sort((a, b) => (b._startTs || 0) - (a._startTs || 0))
+          const completed = transformedCampaigns
+            .filter((c) => c._isCompletedByDate)
+            .sort((a, b) => (b._endTs || 0) - (a._endTs || 0))
+
+          setCampaigns([...ongoing, ...completed].map(({ _endTs, _startTs, _isCompletedByDate, ...rest }) => rest));
         } else {
           console.log('=== Response validation failed ===');
 
@@ -97,10 +111,9 @@ const Campaigns = () => {
               View All Campaigns
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 justify-center items-center pl-[15px]"
-          style={{paddingLeft: "40px"}}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 place-items-center">
             {[1, 2].map((item) => (
-              <div key={item} className="animate-pulse flex flex-col space-y-4">
+              <div key={item} className="animate-pulse flex flex-col space-y-4 w-full max-w-xl">
                 <div className="h-64 bg-gray-200 rounded-xl"></div>
                 <div className="h-6 bg-gray-200 rounded w-3/4"></div>
                 <div className="h-4 bg-gray-200 rounded w-1/2"></div>
@@ -178,9 +191,8 @@ const Campaigns = () => {
         </div>
 
         {/* Campaigns Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 justify-center items-center pl-[15px]"
-        style={{paddingLeft: "40px"}}>
-          {campaigns.map((campaign) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 place-items-center">
+          {campaigns.slice(0, 2).map((campaign) => (
             <CampaignCard key={campaign.id} {...campaign} />
           ))}
         </div>

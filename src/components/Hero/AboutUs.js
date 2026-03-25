@@ -11,7 +11,7 @@ const AboutUs = () => {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="py-20 md:py-32 bg-white">
+      <section className="pt-20 pb-0 md:py-32 bg-white">
         <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Main Grid for content (Image + Text/Stats) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">

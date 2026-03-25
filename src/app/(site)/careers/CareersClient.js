@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { Briefcase, Users, Handshake, Award, Heart, Mail, Phone, User, FileText, MessageSquare, MapPin, Clock, ArrowRight, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import SiteApiService from '@/app/services/site-api';
 
 const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportunities }) => {
   const [activeForm, setActiveForm] = useState('volunteer');
@@ -31,9 +32,11 @@ const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportuniti
     phone: '',
     position: '',
     experience: '',
+    careerId: '',
     resume: null,
     coverLetter: '',
   });
+  const resumeInputRef = useRef(null);
 
   const handleApply = (opportunity, type) => {
     setActiveForm(type);
@@ -41,12 +44,14 @@ const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportuniti
     if (type === 'volunteer') {
       setVolunteerFormData(prev => ({
         ...prev,
-        interestArea: opportunity.title
+        interestArea: opportunity.title,
+        opportunityId: opportunity.id
       }));
     } else {
       setJobFormData(prev => ({
         ...prev,
-        position: opportunity.title
+        position: opportunity.title,
+        careerId: opportunity.id
       }));
     }
     
@@ -56,39 +61,85 @@ const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportuniti
     }
   };
 
-  const handleVolunteerFormSubmit = (e) => {
+  const handleVolunteerFormSubmit = async (e) => {
     e.preventDefault();
-    console.log('Volunteer Form Data:', volunteerFormData);
-    // Here you would typically send the data to your backend
-    alert('Thank you for your volunteer application! We will contact you soon.');
-    // Reset form
-    setVolunteerFormData({
-      fullName: '',
-      email: '',
-      phone: '',
-      location: '',
-      availability: '',
-      skills: '',
-      interestArea: '',
-      message: '',
-    });
+    try {
+      const fallbackOpportunityId = volunteerFormData.opportunityId || volunteerOpportunities?.[0]?.id || ''
+      const payload = {
+        name: volunteerFormData.fullName,
+        email: volunteerFormData.email,
+        phone: volunteerFormData.phone,
+        opportunityId: fallbackOpportunityId
+      }
+
+      const res = await SiteApiService.apiCall('/volunteer-submissions', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      })
+
+      if (!res?.success) {
+        alert(res?.message || 'Could not submit volunteer application.')
+        return
+      }
+
+      alert('Thank you for your volunteer application! We will contact you soon.')
+
+      setVolunteerFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        location: '',
+        availability: '',
+        skills: '',
+        interestArea: '',
+        message: '',
+        opportunityId: ''
+      });
+    } catch (err) {
+      console.error('Volunteer submit failed:', err)
+      alert('Could not submit volunteer application. Please try again.')
+    }
   };
 
-  const handleJobFormSubmit = (e) => {
+  const handleJobFormSubmit = async (e) => {
     e.preventDefault();
-    console.log('Job Application Data:', jobFormData);
-    // Here you would typically send the data to your backend
-    alert('Thank you for your job application! We will review your submission and contact you soon.');
-    // Reset form
-    setJobFormData({
-      fullName: '',
-      email: '',
-      phone: '',
-      position: '',
-      experience: '',
-      resume: null,
-      coverLetter: '',
-    });
+    try {
+      const careerId = jobFormData.careerId || careerOpportunities?.find((c) => c.title === jobFormData.position)?.id || ''
+
+      const fd = new FormData()
+      fd.append('name', jobFormData.fullName)
+      fd.append('email', jobFormData.email)
+      fd.append('phone', jobFormData.phone)
+      fd.append('careerId', careerId)
+      if (jobFormData.resume) fd.append('resume', jobFormData.resume)
+
+      const res = await SiteApiService.apiCall('/career-applications', {
+        method: 'POST',
+        body: fd
+      })
+
+      if (!res?.success) {
+        alert(res?.message || 'Could not submit job application.')
+        return
+      }
+
+      alert('Thank you for your job application! We will review your submission and contact you soon.')
+
+      setJobFormData({
+        fullName: '',
+        email: '',
+        phone: '',
+        position: '',
+        experience: '',
+        careerId: '',
+        resume: null,
+        coverLetter: '',
+      });
+      if (resumeInputRef.current) resumeInputRef.current.value = ''
+    } catch (err) {
+      console.error('Job submit failed:', err)
+      alert('Could not submit job application. Please try again.')
+    }
   };
 
   const handleVolunteerInputChange = (e) => {
@@ -515,6 +566,7 @@ const CareersClient = ({ initialVolunteerOpportunities, initialCareerOpportuniti
                             name="resume"
                             onChange={handleJobInputChange}
                             accept=".pdf,.doc,.docx"
+                            ref={resumeInputRef}
                             className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                           />
                         </div>

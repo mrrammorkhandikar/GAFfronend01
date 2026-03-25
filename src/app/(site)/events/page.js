@@ -17,6 +17,7 @@ export default async function EventsPage() {
     const response = await SiteApiService.getAllEvents();
     if (response.success && response.data) {
       // Transform the event data to match the expected format
+      const now = Date.now()
       transformedEvents = Array.isArray(response.data) ? response.data.map((event) => {
         let content = event.content;
         if (typeof content === 'string') {
@@ -26,6 +27,7 @@ export default async function EventsPage() {
             content = {};
           }
         }
+        const ts = event.eventDate ? new Date(event.eventDate).getTime() : 0
         return {
         id: event.id,
         slug: event.slug,
@@ -52,11 +54,21 @@ export default async function EventsPage() {
           month: 'long', 
           day: 'numeric' 
         }) : 'Date TBD',
-        isPast: event.eventDate ? new Date(event.eventDate) < new Date() : false,
-        isUpcoming: event.eventDate ? new Date(event.eventDate) > new Date() : false,
-        registrationCount: event.registrationCount ?? event.registrations?.length ?? 0
+        isPast: ts > 0 ? ts < now : false,
+        isUpcoming: ts > 0 ? ts > now : false,
+        registrationCount: event.registrationCount ?? event.registrations?.length ?? 0,
+        _ts: ts
       };
       }).filter(event => event.isActive) : [];
+
+      // upcoming/ongoing first, then completed/past
+      const upcoming = transformedEvents
+        .filter((e) => !e.isPast)
+        .sort((a, b) => (a._ts || 0) - (b._ts || 0))
+      const completed = transformedEvents
+        .filter((e) => e.isPast)
+        .sort((a, b) => (b._ts || 0) - (a._ts || 0))
+      transformedEvents = [...upcoming, ...completed].map(({ _ts, ...rest }) => rest)
     } else {
       error = response.message || 'Failed to fetch events';
     }

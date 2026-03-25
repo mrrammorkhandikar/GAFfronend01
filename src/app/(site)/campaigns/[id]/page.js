@@ -9,6 +9,8 @@ const CampaignDetails = ({ params }) => {
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [shareStatus, setShareStatus] = useState(null);
+  const [relatedCampaigns, setRelatedCampaigns] = useState([]);
 
   useEffect(() => {
     const loadCampaign = async () => {
@@ -84,6 +86,81 @@ const CampaignDetails = ({ params }) => {
     loadCampaign();
   }, [params]);
 
+  useEffect(() => {
+    const loadRelated = async () => {
+      if (!campaign?.id) return
+      try {
+        const listRes = await SiteApiService.getAllCampaigns()
+        if (!listRes?.success || !Array.isArray(listRes?.data)) {
+          setRelatedCampaigns([])
+          return
+        }
+
+        const now = Date.now()
+        const others = listRes.data.filter((c) => c.id !== campaign.id && c.isActive !== false)
+
+        const mapped = others
+          .map((c) => {
+            const endTs = c.endDate ? new Date(c.endDate).getTime() : null
+            const startTs = c.startDate ? new Date(c.startDate).getTime() : null
+            const completedByDate = endTs != null ? endTs < now : false
+            return {
+              id: c.id,
+              slug: c.slug || c.id,
+              title: c.title,
+              image: c.imageUrl || '/images/campains/helpforpoorfamilies.jpg',
+              description: c.description || '',
+              _endTs: endTs,
+              _startTs: startTs,
+              _completedByDate: completedByDate
+            }
+          })
+          .sort((a, b) => {
+            if (a._completedByDate !== b._completedByDate) return a._completedByDate ? 1 : -1
+            // ongoing: newest start first; completed: latest end first
+            return a._completedByDate
+              ? (b._endTs || 0) - (a._endTs || 0)
+              : (b._startTs || 0) - (a._startTs || 0)
+          })
+          .slice(0, 6)
+          .map(({ _endTs, _startTs, _completedByDate, ...rest }) => rest)
+
+        setRelatedCampaigns(mapped)
+      } catch (e) {
+        console.error('Error loading related campaigns:', e)
+        setRelatedCampaigns([])
+      }
+    }
+
+    loadRelated()
+  }, [campaign?.id]);
+
+  const handleShare = async () => {
+    try {
+      const url = typeof window !== 'undefined' ? window.location.href : ''
+      const title = campaign?.title ? `Campaign: ${campaign.title}` : 'Campaign'
+
+      setShareStatus(null)
+
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({ title, url })
+        return
+      }
+
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url)
+        setShareStatus('Link copied!')
+        return
+      }
+
+      // Legacy fallback
+      window.prompt('Copy this link:', url)
+    } catch (e) {
+      console.error('Share failed:', e)
+      setShareStatus('Could not share. Please copy the link.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -108,11 +185,6 @@ const CampaignDetails = ({ params }) => {
       </div>
     );
   }
-
-  const relatedCampaigns = [
-    { slug: 'sponsor-for-hygienic-living-program', title: 'Sponsor for Hygienic Living Program', image: '/images/campains/Sponsor_for_Hygienic_Living_Program/titleimage.jpg', description: 'Promoting hygiene awareness and sanitation facilities.' },
-    { slug: 'self-medication-drug-abuse-awareness', title: 'Self Medication & Drug Abuse Awareness', image: '/images/campains/Self_Medication_Drug_Abuse/titleImage.jpg', description: 'Educating youth about dangers of self-medication and drug abuse.' }
-  ];
 
   return (
     <div className="min-h-screen">
@@ -273,7 +345,16 @@ const CampaignDetails = ({ params }) => {
                   </div>
                 </div>
                 <Link href="/donate" className="w-full bg-[#6D190D] text-white py-3 rounded-lg font-semibold hover:bg-[#8B2317] transition-colors mb-4 font-poppins text-center inline-block">Donate Now</Link>
-                <button className="w-full border-2 border-[#6D190D] text-[#6D190D] py-3 rounded-lg font-semibold hover:bg-[#6D190D] hover:text-white transition-colors font-poppins">Share Campaign</button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="w-full border-2 border-[#6D190D] text-[#6D190D] py-3 rounded-lg font-semibold hover:bg-[#6D190D] hover:text-white transition-colors font-poppins"
+                >
+                  Share Campaign
+                </button>
+                {shareStatus && (
+                  <p className="mt-3 text-sm text-gray-600 font-poppins text-center">{shareStatus}</p>
+                )}
               </div>
 
               <div className="bg-white rounded-xl shadow-md p-6 mb-8">

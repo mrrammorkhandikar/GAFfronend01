@@ -72,6 +72,21 @@ class AdminApiService {
     }
   }
 
+  // Password reset (OTP)
+  static async requestPasswordResetOtp(email) {
+    return this.apiCall('/admin/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    })
+  }
+
+  static async resetPasswordWithOtp({ email, otp, newPassword }) {
+    return this.apiCall('/admin/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp, newPassword })
+    })
+  }
+
   static async logout() {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('adminToken')

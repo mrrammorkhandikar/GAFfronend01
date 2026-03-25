@@ -18,10 +18,14 @@ function warnSiteApi (...args) {
 class SiteApiService {
   // Generic API call without authentication
   static async apiCall(endpoint, options = {}) {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
+    // Do NOT set Content-Type for FormData — the browser sets it with the correct multipart boundary
+    const isFormData = options.body instanceof FormData
+    const headers = isFormData
+      ? { ...options.headers }
+      : {
+          'Content-Type': 'application/json',
+          ...options.headers
+        }
 
     const fullUrl = `${getApiBaseUrl()}${endpoint}`
     if (isDev) console.log(`[SiteApi] Requesting: ${fullUrl}`)

@@ -103,6 +103,7 @@ const EventDetails = ({ params }) => {
 
         const listRes = await SiteApiService.getAllEvents();
         if (listRes.success && Array.isArray(listRes.data)) {
+          const now = Date.now();
           const others = listRes.data.filter(
             (e) => e.id !== transformedEvent.id && e.isActive !== false
           );
@@ -111,12 +112,17 @@ const EventDetails = ({ params }) => {
             others.filter((e) => e.campaignId === transformedEvent.campaignId);
           const pool =
             sameCampaign && sameCampaign.length > 0 ? sameCampaign : others;
-          const mapped = pool
-            .sort(
-              (a, b) =>
-                new Date(a.eventDate || 0).getTime() -
-                new Date(b.eventDate || 0).getTime()
-            )
+          const mapped = [...pool]
+            .sort((a, b) => {
+              const at = a.eventDate ? new Date(a.eventDate).getTime() : 0
+              const bt = b.eventDate ? new Date(b.eventDate).getTime() : 0
+              const aPast = at > 0 ? at < now : false
+              const bPast = bt > 0 ? bt < now : false
+              // upcoming/ongoing first
+              if (aPast !== bPast) return aPast ? 1 : -1
+              // within upcoming: soonest first; within past: latest first
+              return aPast ? bt - at : at - bt
+            })
             .slice(0, 5)
             .map((e) => ({
               id: e.id,

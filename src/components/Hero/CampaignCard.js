@@ -10,9 +10,9 @@ const CampaignCard = ({ id, slug, imageSrc, title, raised, remaining, goal, prog
   const isExternalImage = imageSrc?.startsWith('http');
 
   return (
-    <div className={`rounded-xl shadow-lg overflow-hidden border border-gray-100 ${cardBgColor} w-124`}>
+    <div className={`rounded-xl shadow-lg overflow-hidden border border-gray-100 ${cardBgColor} w-full max-w-xl`}>
       {/* Campaign Image */}
-      <div className="h-80 overflow-hidden rounded-2xl relative bg-gray-100">
+      <div className="h-64 sm:h-72 overflow-hidden rounded-2xl relative bg-gray-100">
         <Image
           src={imageSrc}
           alt={title || 'Campaign'}
@@ -55,12 +55,12 @@ const CampaignCard = ({ id, slug, imageSrc, title, raised, remaining, goal, prog
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-4 mb-8 relative px-10">
+        <div className="w-full bg-gray-200 rounded-full h-4 mb-8 relative">
           <div 
             className="h-4 rounded-full bg-[#FFD700] absolute left-0" 
             style={{ width: `${progress}%` }}
           >
-            <span className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-[#FFD700] text-gray-800 text-xs font-bold px-2 rounded-full font-poppins">
+            <span className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-[#FFD700] text-gray-800 text-xs font-bold px-2 rounded-full font-poppins whitespace-nowrap">
               Raised Funds {progress}%
             </span>
           </div>

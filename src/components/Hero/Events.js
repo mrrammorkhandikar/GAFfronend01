@@ -23,8 +23,10 @@ const Events = () => {
             : response.data;
 
         if (response.success && Array.isArray(eventData)) {
+          const now = Date.now();
           const transformedEvents = eventData.map((event) => {
-            const isPast = event.eventDate ? new Date(event.eventDate) < new Date() : false;
+            const ts = event.eventDate ? new Date(event.eventDate).getTime() : 0;
+            const isPast = ts > 0 ? ts < now : false;
             const desc = (event.description || '').trim();
             return {
               id: event.id,
@@ -43,9 +45,18 @@ const Events = () => {
                 : 'JAN',
               registrationEnabled: isRegistrationEnabled(event.registrationEnabled),
               isPast,
+              _ts: ts,
             };
           });
-          setEvents(transformedEvents);
+          // Upcoming/ongoing first, then completed (past)
+          const upcoming = transformedEvents
+            .filter((e) => !e.isPast)
+            .sort((a, b) => (a._ts || 0) - (b._ts || 0));
+          const completed = transformedEvents
+            .filter((e) => e.isPast)
+            .sort((a, b) => (b._ts || 0) - (a._ts || 0));
+
+          setEvents([...upcoming, ...completed].map(({ _ts, ...rest }) => rest));
         } else {
           if (process.env.NODE_ENV === 'development') {
             console.warn('[Events]', response.message || 'No data returned', response);
@@ -87,7 +98,7 @@ const Events = () => {
           </div>
 
           {/* Events Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 justify-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 justify-center">
             {[1, 2].map((item) => (
               <div key={item} className="animate-pulse flex flex-col space-y-4">
                 <div className="h-64 bg-gray-200 rounded-xl"></div>
@@ -161,8 +172,8 @@ const Events = () => {
         </div>
 
         {/* Events Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 justify-center">
-          {events.map((event) => (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 justify-center">
+          {events.slice(0, 2).map((event) => (
             <EventCard key={event.id} {...event} />
           ))}
         </div>
