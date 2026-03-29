@@ -24,6 +24,17 @@ const nextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        // Legacy spam-like URLs indexed by Google should be dropped from results.
+        source: '/cate-:path*',
+        headers: [
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+        ],
+      },
+    ]
+  },
   async rewrites() {
     if (backendProxy) {
       return [{ source: '/api/:path*', destination: `${backendProxy}/api/:path*` }]
