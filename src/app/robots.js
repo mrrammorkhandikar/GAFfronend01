@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://guruakanksha.org';
+const BASE_URL = 'https://guruakanksha.org';
 
 export default function robots() {
   const baseUrl = BASE_URL.replace(/\/$/, '');

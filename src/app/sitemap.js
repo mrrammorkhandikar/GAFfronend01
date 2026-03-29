@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://guruakanksha.org';
+const BASE_URL = 'https://guruakanksha.org';
 
 export default function sitemap() {
   const baseUrl = BASE_URL.replace(/\/$/, '');
@@ -17,7 +17,7 @@ export default function sitemap() {
   return staticRoutes.map((path) => ({
     url: `${baseUrl}${path}`,
     lastModified: new Date(),
-    changefreq: 'weekly',
+    changeFrequency: 'weekly',
     priority: path === '' ? 1 : 0.7,
   }));
 }

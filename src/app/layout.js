@@ -13,8 +13,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 const siteName = 'Guru Akanksha Foundation';
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://guruakanksha.org';
+const siteUrl = 'https://guruakanksha.org';
 const siteDescription =
   'Guru Akanksha Foundation is dedicated to creating sustainable change and empowering communities worldwide through education, healthcare, and emergency relief programs.';
 
