@@ -3,8 +3,8 @@ import { isRegistrationEnabled } from '@/lib/eventRegistration';
 import EventsClient from './EventsClient';
 
 export const metadata = {
-  title: 'Events | Global Aid Foundation',
-  description: 'Join us in our mission to create positive change. Participate in our events, workshops, and community outreach programs.',
+  title: 'Events | Guru Akanksha Foundation',
+  description: 'Join Guru Akanksha Foundation in our mission to create positive change. Participate in our events, workshops, and community outreach programs.',
 };
 
 export const dynamic = 'force-dynamic';

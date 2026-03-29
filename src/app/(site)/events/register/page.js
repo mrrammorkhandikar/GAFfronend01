@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import EventRegisterClient from './EventRegisterClient';
 
 export const metadata = {
-  title: 'Register for event | Global Aid Foundation',
+  title: 'Register for event | Guru Akanksha Foundation',
   description: 'Complete your event registration with Guru Akanksha Foundation.',
 };
 

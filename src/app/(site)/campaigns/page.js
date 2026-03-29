@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Campaigns | Global Aid Foundation',
-  description: 'Discover our ongoing campaigns focused on education, healthcare, and community development. Every contribution helps us reach more people in need.',
+  title: 'Campaigns | Guru Akanksha Foundation',
+  description: 'Discover our ongoing campaigns focused on education, healthcare, and community development. Every contribution helps Guru Akanksha Foundation reach more people in need.',
 };
 
 /** Avoid calling the API during `next build`; fetch at request time when the backend is up. */

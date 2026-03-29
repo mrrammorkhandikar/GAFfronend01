@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
 
+const QR_FALLBACK_SRC = '/images/donate-upi-qr.svg';
+
 const Donate = () => {
   const [donationAmount, setDonationAmount] = useState('');
   const [campaignId, setCampaignId] = useState('');
@@ -15,6 +17,7 @@ const Donate = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [qrSrc, setQrSrc] = useState(QR_FALLBACK_SRC);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -52,6 +55,10 @@ const Donate = () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    setQrSrc(paymentInfo?.upiQrUrl || QR_FALLBACK_SRC);
+  }, [paymentInfo?.upiQrUrl]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -129,8 +136,6 @@ const Donate = () => {
       setSubmitting(false);
     }
   };
-
-  const qrSrc = paymentInfo?.upiQrUrl || '/images/donate-upi-qr.svg';
 
   return (
     <div className="min-h-screen">
@@ -405,7 +410,8 @@ const Donate = () => {
                   <img
                     src={qrSrc}
                     alt="UPI QR code"
-                    className="max-w-[220px] w-full h-auto object-contain"
+                    className="max-w-[220px] w-full h-auto object-contain min-h-[120px]"
+                    onError={() => setQrSrc(QR_FALLBACK_SRC)}
                   />
                 </div>
                 <div>

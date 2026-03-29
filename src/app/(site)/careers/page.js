@@ -2,7 +2,7 @@ import SiteApiService from '@/app/services/site-api';
 import CareersClient from './CareersClient';
 
 export const metadata = {
-  title: 'Careers & Volunteering | Global Aid Foundation',
+  title: 'Careers & Volunteering | Guru Akanksha Foundation',
   description: 'Build your career while making a difference. Join our team as a volunteer or professional and contribute to our mission of social impact.',
 };
 
