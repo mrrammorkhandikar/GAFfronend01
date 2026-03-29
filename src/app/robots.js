@@ -1,4 +1,4 @@
-const BASE_URL = 'https://guruakanksha.org';
+const BASE_URL = 'https://www.guruakanksha.org';
 
 export default function robots() {
   const baseUrl = BASE_URL.replace(/\/$/, '');

@@ -24,16 +24,6 @@ const nextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'www.guruakanksha.org' }],
-        destination: 'https://guruakanksha.org/:path*',
-        permanent: true,
-      },
-    ]
-  },
   async rewrites() {
     if (backendProxy) {
       return [{ source: '/api/:path*', destination: `${backendProxy}/api/:path*` }]
