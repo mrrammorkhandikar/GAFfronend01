@@ -40,11 +40,10 @@ export default function AdminDashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const [statsRes, campRes, donRes] = await Promise.all([
-        AdminApiService.getDashboardStats(),
-        AdminApiService.getCampaigns({ limit: 5, page: 1 }),
-        AdminApiService.getDonations({ limit: 5, page: 1 })
-      ])
+      // Avoid hammering Prisma when DATABASE_URL uses connection_limit=1 (Supabase pooler / Vercel).
+      const statsRes = await AdminApiService.getDashboardStats()
+      const campRes = await AdminApiService.getCampaigns({ limit: 5, page: 1 })
+      const donRes = await AdminApiService.getDonations({ limit: 5, page: 1 })
 
       if (statsRes.success && statsRes.data) {
         setStats(statsRes.data)

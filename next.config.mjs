@@ -28,7 +28,7 @@ const nextConfig = {
     return [
       {
         // Legacy spam-like URLs indexed by Google should be dropped from results.
-        source: '/cate-:path*',
+        source: '/cate-:path',
         headers: [
           { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
         ],
