@@ -4,6 +4,9 @@ import React from "react";
 import Link from "next/link";
 import { Mail, Facebook, Instagram } from "lucide-react";
 
+const FACEBOOK_URL = 'https://www.facebook.com/guruaakanksha2019/';
+const INSTAGRAM_URL = 'https://www.instagram.com/guru.akanksha/';
+
 const Footer = () => {
   return (
     <footer className="bg-[#FFFBEF] border-t border-gray-200 py-12 px-6 lg:px-16">
@@ -39,16 +42,20 @@ const Footer = () => {
       <div className="mt-12 border-t border-gray-300 pt-6 text-center">
         <div className="flex justify-center space-x-6 mb-4">
           <a
-            href="#"
+            href={FACEBOOK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-gray-500 hover:text-yellow-600 transition-colors"
-            aria-label="Facebook"
+            aria-label="Guru Akanksha Foundation on Facebook (opens in a new tab)"
           >
             <Facebook size={20} />
           </a>
           <a
-            href="#"
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-gray-500 hover:text-yellow-600 transition-colors"
-            aria-label="Instagram"
+            aria-label="Guru Akanksha Foundation on Instagram (opens in a new tab)"
           >
             <Instagram size={20} />
           </a>

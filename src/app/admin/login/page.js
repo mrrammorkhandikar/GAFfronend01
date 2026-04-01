@@ -47,14 +47,20 @@ export default function AdminLogin() {
     setForgotErr('')
   }
 
-  const handleSendOtp = async (e) => {
-    e.preventDefault()
+  const sendForgotOtpRequest = async () => {
+    const trimmed = String(forgotEmail || '').trim()
+    if (!trimmed) {
+      setForgotErr('Please enter your admin email.')
+      return
+    }
+    if (trimmed !== forgotEmail) setForgotEmail(trimmed)
+
     setForgotLoading(true)
     setForgotErr('')
     setForgotMsg('')
 
     try {
-      const res = await AdminApiService.requestPasswordResetOtp(forgotEmail)
+      const res = await AdminApiService.requestPasswordResetOtp(trimmed)
       if (!res?.success) {
         setForgotErr(res?.message || 'Could not send OTP.')
         return
@@ -66,6 +72,11 @@ export default function AdminLogin() {
     } finally {
       setForgotLoading(false)
     }
+  }
+
+  const handleSendOtp = async (e) => {
+    e?.preventDefault?.()
+    await sendForgotOtpRequest()
   }
 
   const handleResetPassword = async (e) => {
@@ -342,7 +353,11 @@ export default function AdminLogin() {
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={handleSendOtp}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      void sendForgotOtpRequest()
+                    }}
                     disabled={forgotLoading}
                     className="flex-1 py-3 px-4 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 disabled:opacity-50"
                   >

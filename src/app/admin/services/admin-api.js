@@ -72,18 +72,20 @@ class AdminApiService {
     }
   }
 
-  // Password reset (OTP)
+  // Password reset (OTP) — never send Authorization (stale demo-token / JWT breaks some production proxies)
   static async requestPasswordResetOtp(email) {
     return this.apiCall('/admin/forgot-password', {
       method: 'POST',
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email }),
+      skipAuth: true
     })
   }
 
   static async resetPasswordWithOtp({ email, otp, newPassword }) {
     return this.apiCall('/admin/reset-password', {
       method: 'POST',
-      body: JSON.stringify({ email, otp, newPassword })
+      body: JSON.stringify({ email, otp, newPassword }),
+      skipAuth: true
     })
   }
 
@@ -123,30 +125,31 @@ class AdminApiService {
 
   // Generic API call with authentication
   static async apiCall(endpoint, options = {}) {
-    const token = this.getAdminToken()
-    
+    const { skipAuth, ...fetchOptions } = options
+    const token = skipAuth ? null : this.getAdminToken()
+
     // Do NOT set Content-Type for FormData — the browser sets it with the correct multipart boundary
-    const isFormData = options.body instanceof FormData
+    const isFormData = fetchOptions.body instanceof FormData
     const headers = isFormData ? {} : {
       'Content-Type': 'application/json',
-      ...options.headers
+      ...fetchOptions.headers
     }
-    
-    if (!isFormData && options.headers) {
-      Object.assign(headers, options.headers)
+
+    if (!isFormData && fetchOptions.headers) {
+      Object.assign(headers, fetchOptions.headers)
     }
-    
+
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
 
     // Debug: Log the full URL being called
     const fullUrl = `${getApiBaseUrl()}${endpoint}`
-    console.log(`[AdminApi] Requesting: ${fullUrl}`);
-    
+    console.log(`[AdminApi] Requesting: ${fullUrl}`)
+
     try {
       const response = await fetch(fullUrl, {
-        ...options,
+        ...fetchOptions,
         headers
       })
       
