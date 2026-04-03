@@ -18,7 +18,6 @@ import {
   ChevronDown,
   ChevronUp,
   Bell,
-  Settings,
   Image as ImageIcon
 } from 'lucide-react'
 import AdminApiService from '../services/admin-api'
@@ -346,18 +345,14 @@ export default function AdminLayout({ children }) {
             </div>
           </div>
                   
-          <div className="flex space-x-2">
-            <button className="flex-1 flex items-center justify-center px-3 py-2 text-sm text-[#222222] bg-white rounded-lg border border-[#6D190D] hover:bg-[#fcf9e3] transition-colors font-poppins">
-              <Settings className="h-4 w-4 mr-1" />
-              Settings
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center px-3 py-2 text-sm text-[#6D190D] bg-white rounded-lg border border-[#6D190D] hover:bg-[#6D190D] hover:text-white transition-colors font-poppins"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-[#6D190D] bg-white rounded-lg border border-[#6D190D] hover:bg-[#6D190D] hover:text-white transition-colors font-poppins"
+          >
+            <LogOut className="h-4 w-4" />
+            Log out
+          </button>
         </div>
       </div>
 

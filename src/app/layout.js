@@ -1,4 +1,5 @@
 import { Poppins, Playfair_Display } from 'next/font/google';
+import { siteLogoAbsoluteUrl } from './robots';
 import "./globals.css";
 
 const poppins = Poppins({
@@ -34,7 +35,7 @@ export const metadata = {
     title: `${siteName} | Making a Difference Worldwide`,
     description: siteDescription,
     siteName,
-    images: [{ url: '/logo.png', alt: siteName }],
+    images: [{ url: siteLogoAbsoluteUrl, alt: siteName }],
   },
   alternates: {
     canonical: siteUrl,
@@ -48,6 +49,9 @@ export default function RootLayout({ children }) {
     name: siteName,
     url: siteUrl,
     description: siteDescription,
+    // Absolute URL required for Google Search organization logo (canonical URL from `robots.js`)
+    logo: siteLogoAbsoluteUrl,
+    image: siteLogoAbsoluteUrl,
   };
 
   return (
