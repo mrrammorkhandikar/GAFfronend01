@@ -39,7 +39,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <motion.img
-              src="/logo.png"
+              src="/images/GAF_Website_logo-removebg.png"
               alt="Guru Akanksha Foundation"
               className="h-10 w-auto"
               initial={{ opacity: 0, scale: 0.9 }}
