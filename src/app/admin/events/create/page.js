@@ -13,6 +13,7 @@ export default function CreateEventPage() {
     description: '',
     eventDate: '',
     location: '',
+    isOnline: false,
     campaignId: '',
     isActive: true,
     registrationEnabled: false,
@@ -137,7 +138,7 @@ export default function CreateEventPage() {
       // Add basic fields
       Object.entries(formData).forEach(([key, value]) => {
         if (value === '' || value === null) return
-        if (key === 'registrationEnabled') {
+        if (key === 'registrationEnabled' || key === 'isOnline') {
           formDataObj.append(key, value ? 'true' : 'false')
           return
         }
@@ -296,8 +297,34 @@ export default function CreateEventPage() {
                 </div>
 
                 <div>
+                  <span className="block text-sm font-medium text-gray-700 mb-2">Event format *</span>
+                  <div className="flex flex-wrap gap-4">
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="eventFormat"
+                        checked={formData.isOnline !== true}
+                        onChange={() => setFormData((prev) => ({ ...prev, isOnline: false }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">In person</span>
+                    </label>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="eventFormat"
+                        checked={formData.isOnline === true}
+                        onChange={() => setFormData((prev) => ({ ...prev, isOnline: true }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Online</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
                   <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                    Location *
+                    {formData.isOnline ? 'Meeting link or join details *' : 'Venue / location *'}
                   </label>
                   <input
                     type="text"
@@ -307,7 +334,7 @@ export default function CreateEventPage() {
                     value={formData.location}
                     onChange={handleInputChange}
                     className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Event location"
+                    placeholder={formData.isOnline ? 'e.g. Zoom link or platform instructions' : 'City, venue, or address'}
                   />
                 </div>
 

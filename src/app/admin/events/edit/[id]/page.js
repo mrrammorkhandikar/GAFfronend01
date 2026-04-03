@@ -14,6 +14,7 @@ export default function EditEventPage() {
     description: '',
     eventDate: '',
     location: '',
+    isOnline: false,
     campaignId: '',
     isActive: true,
     registrationEnabled: false,
@@ -51,14 +52,15 @@ export default function EditEventPage() {
           
           // Populate form data
           setFormData({
-            title: eventData.title,
-            slug: eventData.slug,
-            description: eventData.description,
+            title: eventData.title ?? '',
+            slug: eventData.slug ?? '',
+            description: eventData.description ?? '',
             eventDate: eventData.eventDate ? new Date(eventData.eventDate).toISOString().slice(0, 16) : '',
-            location: eventData.location,
+            location: eventData.location ?? '',
+            isOnline: eventData.isOnline === true,
             campaignId: eventData.campaignId || '',
-            isActive: eventData.isActive,
-            registrationEnabled: Boolean(eventData.registrationEnabled),
+            isActive: eventData.isActive !== false,
+            registrationEnabled: eventData.registrationEnabled === true,
             registrationFee:
               eventData.registrationFee !== undefined && eventData.registrationFee !== null
                 ? String(eventData.registrationFee)
@@ -195,9 +197,12 @@ export default function EditEventPage() {
       
       // Add basic fields
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== '' && value !== null) {
-          formDataObj.append(key, value)
+        if (value === '' || value === null) return
+        if (key === 'registrationEnabled' || key === 'isActive' || key === 'isOnline') {
+          formDataObj.append(key, value ? 'true' : 'false')
+          return
         }
+        formDataObj.append(key, value)
       })
 
       // Add content as JSON
@@ -368,18 +373,44 @@ export default function EditEventPage() {
                 </div>
 
                 <div>
+                  <span className="block text-sm font-medium text-gray-700 mb-2">Event format *</span>
+                  <div className="flex flex-wrap gap-4">
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="eventFormat"
+                        checked={formData.isOnline !== true}
+                        onChange={() => setFormData((prev) => ({ ...prev, isOnline: false }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">In person</span>
+                    </label>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="eventFormat"
+                        checked={formData.isOnline === true}
+                        onChange={() => setFormData((prev) => ({ ...prev, isOnline: true }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Online</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
                   <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                    Location *
+                    {formData.isOnline ? 'Meeting link or join details *' : 'Venue / location *'}
                   </label>
                   <input
                     type="text"
                     name="location"
                     id="location"
                     required
-                    value={formData.location}
+                    value={formData.location ?? ''}
                     onChange={handleInputChange}
                     className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                    placeholder="Event location"
+                    placeholder={formData.isOnline ? 'e.g. Zoom link or platform instructions' : 'City, venue, or address'}
                   />
                 </div>
 
@@ -408,7 +439,7 @@ export default function EditEventPage() {
                     type="checkbox"
                     name="isActive"
                     id="isActive"
-                    checked={formData.isActive}
+                    checked={formData.isActive !== false}
                     onChange={handleInputChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
@@ -422,7 +453,7 @@ export default function EditEventPage() {
                     type="checkbox"
                     name="registrationEnabled"
                     id="registrationEnabled"
-                    checked={formData.registrationEnabled}
+                    checked={formData.registrationEnabled === true}
                     onChange={handleInputChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />

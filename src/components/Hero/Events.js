@@ -37,6 +37,7 @@ const Events = () => {
                 ? new Date(event.eventDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 : 'TBD',
               location: event.location,
+              isOnline: Boolean(event.isOnline),
               description:
                 desc.length > 100 ? `${desc.slice(0, 100)}...` : desc || 'Event description coming soon...',
               dateDay: event.eventDate ? String(new Date(event.eventDate).getDate()) : '01',

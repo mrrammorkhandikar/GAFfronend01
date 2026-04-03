@@ -78,8 +78,21 @@ export default function EventsPage() {
       )
     },
     {
+      key: 'isOnline',
+      label: 'Format',
+      render: (value) => (
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            value ? 'bg-sky-100 text-sky-800' : 'bg-stone-100 text-stone-700'
+          }`}
+        >
+          {value ? 'Online' : 'In person'}
+        </span>
+      )
+    },
+    {
       key: 'location',
-      label: 'Location'
+      label: 'Location / link'
     },
     {
       key: 'eventDate',

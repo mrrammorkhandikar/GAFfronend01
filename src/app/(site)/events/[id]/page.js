@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   MapPin,
+  Globe,
   Clock,
   Users,
   Target,
@@ -14,6 +15,11 @@ import {
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
 import { isRegistrationEnabled } from '@/lib/eventRegistration';
+
+function locationLooksLikeUrl(text) {
+  if (!text || typeof text !== 'string') return false;
+  return /^https?:\/\//i.test(text.trim());
+}
 
 const EventDetails = ({ params }) => {
   const [event, setEvent] = useState(null);
@@ -55,6 +61,7 @@ const EventDetails = ({ params }) => {
             response.data.description || response.data.details || '',
           eventDate: response.data.eventDate,
           location: response.data.location,
+          isOnline: Boolean(response.data.isOnline),
           address: response.data.address,
           isActive: response.data.isActive,
           content: content,
@@ -234,8 +241,26 @@ const EventDetails = ({ params }) => {
                 {event.formattedTime}
               </div>
               <div className="flex items-center">
-                <MapPin className="mr-2" size={16} />
-                {event.location}
+                {event.isOnline ? (
+                  <Globe className="mr-2 flex-shrink-0" size={16} />
+                ) : (
+                  <MapPin className="mr-2 flex-shrink-0" size={16} />
+                )}
+                {event.isOnline && locationLooksLikeUrl(event.location) ? (
+                  <a
+                    href={event.location.trim()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-white/90 break-all"
+                  >
+                    Join online
+                  </a>
+                ) : (
+                  <span>
+                    {event.isOnline && <span className="font-semibold">Online · </span>}
+                    {event.location}
+                  </span>
+                )}
               </div>
             </div>
             <div className="mt-4 inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full font-semibold">
@@ -410,13 +435,28 @@ const EventDetails = ({ params }) => {
                     </div>
 
                     <div className="flex items-start">
-                      <MapPin className="text-[#6D190D] mr-3 mt-1" size={20} />
+                      {event.isOnline ? (
+                        <Globe className="text-[#6D190D] mr-3 mt-1 flex-shrink-0" size={20} />
+                      ) : (
+                        <MapPin className="text-[#6D190D] mr-3 mt-1 flex-shrink-0" size={20} />
+                      )}
                       <div>
                         <div className="font-semibold text-[#222222] font-poppins">
-                          Location
+                          {event.isOnline ? 'Online' : 'Location'}
                         </div>
-                        <div className="text-gray-600 font-poppins">
-                          {event.location}
+                        <div className="text-gray-600 font-poppins break-words">
+                          {event.isOnline && locationLooksLikeUrl(event.location) ? (
+                            <a
+                              href={event.location.trim()}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#6D190D] hover:underline"
+                            >
+                              Open meeting link
+                            </a>
+                          ) : (
+                            event.location
+                          )}
                         </div>
                         {event.address && (
                           <div className="text-sm text-gray-500 mt-1 font-poppins">

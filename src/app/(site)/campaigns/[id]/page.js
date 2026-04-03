@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Heart, Users, Target, Calendar, MapPin, ArrowLeft, TrendingUp, Clock } from 'lucide-react';
+import { Heart, Users, Target, Calendar, MapPin, Globe, ArrowLeft, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
 
@@ -316,8 +316,15 @@ const CampaignDetails = ({ params }) => {
                             {new Date(event.eventDate).toLocaleDateString()}
                           </div>
                           <div className="flex items-center text-sm text-gray-600 mb-4 font-poppins">
-                            <MapPin className="mr-2" size={16} />
-                            {event.location}
+                            {event.isOnline ? (
+                              <Globe className="mr-2 flex-shrink-0" size={16} />
+                            ) : (
+                              <MapPin className="mr-2 flex-shrink-0" size={16} />
+                            )}
+                            <span>
+                              {event.isOnline && <span className="font-semibold text-[#6D190D]">Online · </span>}
+                              {event.location}
+                            </span>
                           </div>
                           <p className="text-sm text-gray-600 font-poppins line-clamp-2">{event.description}</p>
                           <div className="mt-4 text-[#6D190D] font-semibold font-poppins group-hover:underline">View Event Details →</div>

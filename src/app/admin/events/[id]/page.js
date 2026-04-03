@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Image from 'next/image'
-import { ArrowLeft, Calendar, MapPin, Image as ImageIcon, FileText, Edit } from 'lucide-react'
+import { ArrowLeft, Calendar, MapPin, Globe, Image as ImageIcon, FileText, Edit } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
 import AdminApiService from '@/app/admin/services/admin-api'
 
@@ -193,10 +193,16 @@ export default function ViewEventPage() {
                 </div>
                 
                 <div className="flex items-start">
-                  <MapPin className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  {event.isOnline ? (
+                    <Globe className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  ) : (
+                    <MapPin className="h-5 w-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                  )}
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-500">Location</p>
-                    <p className="text-sm text-gray-900">{event.location}</p>
+                    <p className="text-sm font-medium text-gray-500">
+                      {event.isOnline ? 'Online (link or details)' : 'Location'}
+                    </p>
+                    <p className="text-sm text-gray-900 break-words">{event.location}</p>
                   </div>
                 </div>
                 

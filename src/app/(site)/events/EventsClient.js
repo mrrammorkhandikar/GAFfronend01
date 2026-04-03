@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, MapPin, Users, Clock, TrendingUp, Target } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, TrendingUp, Target, Globe } from 'lucide-react';
 import Link from 'next/link';
 
 const EventsClient = ({ initialEvents }) => {
@@ -73,8 +73,17 @@ const EventsClient = ({ initialEvents }) => {
                             {event.time}
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <MapPin className="w-4 h-4 text-[#D4A71C]" />
-                            {event.location}
+                            {event.isOnline ? (
+                              <Globe className="w-4 h-4 text-[#D4A71C] flex-shrink-0" />
+                            ) : (
+                              <MapPin className="w-4 h-4 text-[#D4A71C] flex-shrink-0" />
+                            )}
+                            <span>
+                              {event.isOnline && (
+                                <span className="font-semibold text-[#6D190D]">Online · </span>
+                              )}
+                              {event.location}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Users className="w-4 h-4 text-[#D4A71C]" />

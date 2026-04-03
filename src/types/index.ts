@@ -19,6 +19,7 @@ export interface Event {
   slug: string;
   description: string;
   location: string;
+  isOnline?: boolean;
   eventDate: string;
   imageUrl?: string;
   isActive: boolean;

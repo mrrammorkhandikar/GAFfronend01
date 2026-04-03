@@ -35,6 +35,7 @@ export default async function EventsPage() {
         title: event.title,
         description: event.description,
         location: event.location,
+        isOnline: Boolean(event.isOnline),
         eventDate: event.eventDate,
         isActive: event.isActive,
         content: content || {},

@@ -153,12 +153,36 @@ class AdminApiService {
         headers
       })
       
-      // Check if response is OK
+      // Non-OK: prefer JSON `message` from API (Prisma/validation errors) over generic status text
       if (!response.ok) {
-        console.error(`[AdminApi] Error ${response.status}: ${response.statusText}`);
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const ct = response.headers.get('content-type')
+        let detail = response.statusText
+        let errors
+        if (ct?.includes('application/json')) {
+          try {
+            const errBody = await response.json()
+            if (errBody?.message) detail = errBody.message
+            if (errBody?.errors) errors = errBody.errors
+          } catch {
+            /* ignore */
+          }
+        } else {
+          try {
+            const text = await response.text()
+            if (text?.trim()) detail = text.trim().slice(0, 400)
+          } catch {
+            /* ignore */
+          }
+        }
+        console.error(`[AdminApi] Error ${response.status}:`, detail)
+        return {
+          success: false,
+          message: detail || `Request failed (${response.status})`,
+          errors,
+          status: response.status
+        }
       }
-      
+
       const contentType = response.headers.get('content-type')
       if (!contentType || !contentType.includes('application/json')) {
         const text = await response.text();
