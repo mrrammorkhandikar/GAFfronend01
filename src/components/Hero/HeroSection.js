@@ -27,7 +27,7 @@ const HeroSection = () => {
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
         {/* Logo */}
         <Image
-          src="/images/GAF_Website_logo-removebg.png"
+          src="/logo.png"
           alt="Guru Akanksha Foundation Logo"
           width={300}
           height={100}

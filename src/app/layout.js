@@ -24,12 +24,17 @@ export const metadata = {
     template: `%s | ${siteName}`,
   },
   description: siteDescription,
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
   openGraph: {
     type: 'website',
     url: siteUrl,
     title: `${siteName} | Making a Difference Worldwide`,
     description: siteDescription,
     siteName,
+    images: [{ url: '/logo.png', alt: siteName }],
   },
   alternates: {
     canonical: siteUrl,
