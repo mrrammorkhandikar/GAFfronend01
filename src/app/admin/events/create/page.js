@@ -68,6 +68,8 @@ export default function CreateEventPage() {
       const updated = { ...prev }
       if (section === 'journey') {
         updated[section][index][field] = value
+      } else if (section === 'speakers' || section === 'agenda') {
+        updated[section][index] = { ...updated[section][index], [field]: value }
       } else {
         updated[section][index] = value
       }
@@ -151,24 +153,31 @@ export default function CreateEventPage() {
 
       // Add content as JSON
       const contentData = {
-        about: content.about.filter(item => item.trim() !== ''),
-        journey: content.journey.filter(item => 
-          item.title.trim() !== '' || item.description.trim() !== ''
-        ).map(item => ({
-          title: item.title,
-          description: item.description,
-          imageUrl: item.imageUrl || undefined
-        })),
-        keyAchievements: content.keyAchievements.filter(item => item.trim() !== ''),
-        speakers: content.speakers.filter(s => s.name.trim() !== '').map(s => ({
-          name: s.name,
-          role: s.role
-        })),
-        agenda: content.agenda.filter(a => a.title.trim() !== '').map(a => ({
-          time: a.time,
-          title: a.title,
-          description: a.description
-        }))
+        about: content.about.filter((item) => (item ?? '').trim() !== ''),
+        journey: content.journey
+          .filter(
+            (item) =>
+              (item?.title ?? '').trim() !== '' || (item?.description ?? '').trim() !== ''
+          )
+          .map((item) => ({
+            title: item.title ?? '',
+            description: item.description ?? '',
+            imageUrl: item.imageUrl || undefined
+          })),
+        keyAchievements: content.keyAchievements.filter((item) => (item ?? '').trim() !== ''),
+        speakers: content.speakers
+          .filter((s) => s && typeof s === 'object' && (String(s.name ?? '').trim() !== ''))
+          .map((s) => ({
+            name: String(s.name ?? '').trim(),
+            role: String(s.role ?? '').trim()
+          })),
+        agenda: content.agenda
+          .filter((a) => a && typeof a === 'object' && (String(a.title ?? '').trim() !== ''))
+          .map((a) => ({
+            time: String(a.time ?? '').trim(),
+            title: String(a.title ?? '').trim(),
+            description: String(a.description ?? '').trim()
+          }))
       }
       formDataObj.append('content', JSON.stringify(contentData))
 
@@ -542,14 +551,14 @@ export default function CreateEventPage() {
                       <div key={index} className="flex gap-3 items-start">
                         <input
                           type="text"
-                          value={speaker.name}
+                          value={speaker.name ?? ''}
                           onChange={(e) => handleContentChange('speakers', index, 'name', e.target.value)}
                           className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           placeholder="Full name"
                         />
                         <input
                           type="text"
-                          value={speaker.role}
+                          value={speaker.role ?? ''}
                           onChange={(e) => handleContentChange('speakers', index, 'role', e.target.value)}
                           className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           placeholder="Role / Title"
@@ -599,14 +608,14 @@ export default function CreateEventPage() {
                         <div className="grid grid-cols-3 gap-3">
                           <input
                             type="text"
-                            value={item.time}
+                            value={item.time ?? ''}
                             onChange={(e) => handleContentChange('agenda', index, 'time', e.target.value)}
                             className="border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                             placeholder="Time (e.g. 10:00 AM)"
                           />
                           <input
                             type="text"
-                            value={item.title}
+                            value={item.title ?? ''}
                             onChange={(e) => handleContentChange('agenda', index, 'title', e.target.value)}
                             className="col-span-2 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                             placeholder="Activity title"
@@ -614,7 +623,7 @@ export default function CreateEventPage() {
                         </div>
                         <input
                           type="text"
-                          value={item.description}
+                          value={item.description ?? ''}
                           onChange={(e) => handleContentChange('agenda', index, 'description', e.target.value)}
                           className="mt-2 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm"
                           placeholder="Brief description (optional)"
