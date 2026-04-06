@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Users, Target, Calendar, MapPin, Globe, ArrowLeft, TrendingUp, Clock } from 'lucide-react';
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
+import AboutBlocksDisplay from '@/components/AboutBlocksDisplay';
+import { aboutBlocksHaveContent } from '@/lib/aboutBlocks';
+import { keyFocusAreaToPlainString } from '@/lib/campaignContent';
 
 const CampaignDetails = ({ params }) => {
   const [campaign, setCampaign] = useState(null);
@@ -65,7 +68,9 @@ const CampaignDetails = ({ params }) => {
             }) : 'End Date TBD',
             about: content?.about || [],
             impactGallery: content?.impactGallery || [],
-            keyFocusAreas: content?.keyFocusAreas || [],
+            keyFocusAreas: (content?.keyFocusAreas || []).filter(
+              (a) => keyFocusAreaToPlainString(a).trim() !== ''
+            ),
             impactNumbers: content?.impactNumbers || [],
             testimonials: content?.testimonials || [],
             isCompleted: response.data.amount > 0 && response.data.raisedAmount >= response.data.amount
@@ -235,10 +240,12 @@ const CampaignDetails = ({ params }) => {
               <div className="bg-white rounded-xl shadow-md p-8 mb-8">
                 <h2 className="text-2xl font-bold text-[#222222] mb-6 font-playfair">About This Campaign</h2>
                 <div className="prose max-w-none font-poppins text-gray-700">
-                  {campaign.about.length > 0 ? (
-                    campaign.about.map((paragraph, index) => (
-                      <p key={index} className="mb-4">{paragraph}</p>
-                    ))
+                  {aboutBlocksHaveContent(campaign.about) ? (
+                    <AboutBlocksDisplay
+                      about={campaign.about}
+                      paragraphClassName="mb-4 last:mb-0"
+                      listClassName="list-disc pl-6 mb-4 space-y-2 last:mb-0"
+                    />
                   ) : (
                     <p>{campaign.fullDescription}</p>
                   )}
@@ -265,7 +272,7 @@ const CampaignDetails = ({ params }) => {
                     {campaign.keyFocusAreas.map((area, index) => (
                       <div key={index} className="flex items-start">
                         <div className="w-2 h-2 bg-[#FFD700] rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                        <p className="text-gray-700 font-poppins">{area}</p>
+                        <p className="text-gray-700 font-poppins">{keyFocusAreaToPlainString(area)}</p>
                       </div>
                     ))}
                   </div>

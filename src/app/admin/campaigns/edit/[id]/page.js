@@ -1,10 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Save, Upload, Plus, X, Image, Target, FileText } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
+import AdminRemoteImage from '@/app/admin/components/AdminRemoteImage'
+import AboutBlocksEditor from '@/app/admin/components/AboutBlocksEditor'
 import AdminApiService from '@/app/admin/services/admin-api'
+import { aboutBlocksHaveContent, normalizeAboutBlocksForEditor, serializeAboutBlocks } from '@/lib/aboutBlocks'
+import {
+  filterNonEmptyImpactNumbers,
+  filterNonEmptyKeyFocusAreas,
+  filterNonEmptyTestimonials,
+  keyFocusAreaToPlainString,
+  normalizeImpactNumbersForForm,
+  normalizeKeyFocusAreasForForm,
+  normalizeTestimonialsForForm,
+} from '@/lib/campaignContent'
 
 export default function EditCampaignPage() {
   const [campaign, setCampaign] = useState(null)
@@ -20,7 +32,7 @@ export default function EditCampaignPage() {
     isActive: true
   })
   const [content, setContent] = useState({
-    about: [''],
+    about: [{ type: 'paragraph', text: '' }],
     impactGallery: Array(4).fill(''),
     keyFocusAreas: Array(8).fill('')
   })
@@ -32,6 +44,17 @@ export default function EditCampaignPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id
+
+  const newFeaturedObjectUrl = useMemo(
+    () => (image ? URL.createObjectURL(image) : ''),
+    [image]
+  )
+
+  useEffect(() => {
+    return () => {
+      if (newFeaturedObjectUrl) URL.revokeObjectURL(newFeaturedObjectUrl)
+    }
+  }, [newFeaturedObjectUrl])
 
   useEffect(() => {
     if (id) {
@@ -69,13 +92,11 @@ export default function EditCampaignPage() {
         const existingGallery = campaignContent.impactGallery || []
         const gallerySlots = Array(4).fill('').map((_, i) => existingGallery[i] || '')
         setContent({
-          about: campaignContent.about?.length ? campaignContent.about : [''],
+          about: normalizeAboutBlocksForEditor(campaignContent.about),
           impactGallery: gallerySlots,
-          keyFocusAreas: campaignContent.keyFocusAreas?.length
-            ? [...campaignContent.keyFocusAreas, ...Array(Math.max(0, 8 - campaignContent.keyFocusAreas.length)).fill('')]
-            : Array(8).fill(''),
-          impactNumbers: campaignContent.impactNumbers?.length ? campaignContent.impactNumbers : [{ label: '', value: '' }],
-          testimonials: campaignContent.testimonials?.length ? campaignContent.testimonials : [{ quote: '', author: '', role: '' }]
+          keyFocusAreas: normalizeKeyFocusAreasForForm(campaignContent.keyFocusAreas, 8),
+          impactNumbers: normalizeImpactNumbersForForm(campaignContent.impactNumbers),
+          testimonials: normalizeTestimonialsForForm(campaignContent.testimonials),
         })
       } else {
         setError(response.message || 'Failed to fetch campaign')
@@ -109,24 +130,6 @@ export default function EditCampaignPage() {
       ...prev,
       [section]: prev[section].map((item, i) => i === index ? value : item)
     }))
-  }
-
-  const addContentItem = (section) => {
-    if (section === 'about') {
-      setContent(prev => ({
-        ...prev,
-        [section]: [...prev[section], '']
-      }))
-    }
-  }
-
-  const removeContentItem = (section, index) => {
-    if (section === 'about' && content[section].length > 1) {
-      setContent(prev => ({
-        ...prev,
-        [section]: prev[section].filter((_, i) => i !== index)
-      }))
-    }
   }
 
   const handleImageUpload = (index, file) => {
@@ -170,10 +173,8 @@ export default function EditCampaignPage() {
       return false
     }
     
-    // Validate content sections
-    const aboutContent = content.about.filter(item => item.trim() !== '')
-    if (aboutContent.length === 0) {
-      setError('At least one about paragraph is required')
+    if (!aboutBlocksHaveContent(content.about)) {
+      setError('Add at least one paragraph or bullet list in About This Campaign')
       return false
     }
     
@@ -202,13 +203,13 @@ export default function EditCampaignPage() {
 
       // Add content as JSON — only include string URLs for gallery, not File objects
       const contentData = {
-        about: content.about.filter(item => item.trim() !== ''),
+        about: serializeAboutBlocks(content.about),
         impactGallery: content.impactGallery
           .map(item => (typeof item === 'string' && item !== '') ? item : (item?.url || null))
           .filter(Boolean),
-        keyFocusAreas: content.keyFocusAreas.filter(item => item.trim() !== ''),
-        impactNumbers: content.impactNumbers.filter(n => n.label.trim() !== '' && n.value.trim() !== ''),
-        testimonials: content.testimonials.filter(t => t.quote.trim() !== '')
+        keyFocusAreas: filterNonEmptyKeyFocusAreas(content.keyFocusAreas).map(keyFocusAreaToPlainString),
+        impactNumbers: filterNonEmptyImpactNumbers(content.impactNumbers),
+        testimonials: filterNonEmptyTestimonials(content.testimonials),
       }
       formDataObj.append('content', JSON.stringify(contentData))
 
@@ -449,41 +450,12 @@ export default function EditCampaignPage() {
                 </div>
 
                 {/* About Section */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-md font-medium text-gray-900">About This Campaign</h4>
-                    <button
-                      type="button"
-                      onClick={() => addContentItem('about')}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Paragraph
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {content.about.map((paragraph, index) => (
-                      <div key={index} className="flex">
-                        <textarea
-                          value={paragraph}
-                          onChange={(e) => handleContentChange('about', index, e.target.value)}
-                          rows={3}
-                          className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                          placeholder={`Paragraph ${index + 1} content`}
-                        />
-                        {content.about.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeContentItem('about', index)}
-                            className="ml-2 px-3 py-2 text-red-600 hover:text-red-800 self-start mt-2"
-                          >
-                            <X className="h-5 w-5" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <AboutBlocksEditor
+                  heading="About This Campaign"
+                  value={content.about}
+                  onChange={(about) => setContent((prev) => ({ ...prev, about }))}
+                  useDarkText
+                />
 
                 {/* Impact Gallery Section */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -497,9 +469,19 @@ export default function EditCampaignPage() {
                         {imageItem ? (
                           <div className="relative w-full h-full">
                             {imageItem.preview ? (
-                              <img src={imageItem.preview} alt={`Gallery ${index+1}`} className="w-full h-24 object-cover" />
+                              <AdminRemoteImage
+                                src={imageItem.preview}
+                                alt={`Gallery ${index + 1}`}
+                                className="w-full h-24 object-cover"
+                                fallbackClassName="min-h-24"
+                              />
                             ) : typeof imageItem === 'string' ? (
-                              <img src={imageItem} alt={`Gallery ${index+1}`} className="w-full h-24 object-cover" onError={e=>{e.target.style.display='none'}} />
+                              <AdminRemoteImage
+                                src={imageItem}
+                                alt={`Gallery ${index + 1}`}
+                                className="w-full h-24 object-cover"
+                                fallbackClassName="min-h-24"
+                              />
                             ) : (
                               <div className="h-24 flex items-center justify-center bg-gray-100">
                                 <span className="text-xs text-gray-500 px-2 truncate">{imageItem?.file?.name || 'Image'}</span>
@@ -683,13 +665,24 @@ export default function EditCampaignPage() {
                   {imagePreview && !image && (
                     <div className="mb-3">
                       <p className="text-xs text-gray-500 mb-1">Current image:</p>
-                      <img src={imagePreview} alt="Current featured" className="w-full h-40 object-cover rounded-lg" />
+                      <AdminRemoteImage
+                        src={imagePreview}
+                        alt="Current featured"
+                        className="w-full h-40 object-cover rounded-lg"
+                        fallbackClassName="min-h-40"
+                        hint={<>Check storage or re-upload. Remote URLs use a no-referrer preview.</>}
+                      />
                     </div>
                   )}
-                  {image && (
+                  {image && newFeaturedObjectUrl && (
                     <div className="mb-3">
                       <p className="text-xs text-gray-500 mb-1">New image preview:</p>
-                      <img src={URL.createObjectURL(image)} alt="New featured" className="w-full h-40 object-cover rounded-lg" />
+                      <AdminRemoteImage
+                        src={newFeaturedObjectUrl}
+                        alt="New featured"
+                        className="w-full h-40 object-cover rounded-lg"
+                        fallbackClassName="min-h-40"
+                      />
                     </div>
                   )}
                   <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">

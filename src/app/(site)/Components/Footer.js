@@ -2,10 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { Mail, Facebook, Instagram } from "lucide-react";
+import { Mail, Facebook, Instagram, Youtube, Linkedin } from "lucide-react";
 
 const FACEBOOK_URL = 'https://www.facebook.com/guruaakanksha2019/';
 const INSTAGRAM_URL = 'https://www.instagram.com/guru.akanksha/';
+/** Replace with your official YouTube channel and LinkedIn company URLs if different */
+const YOUTUBE_URL = 'https://www.youtube.com/@guruakanksha';
+const LINKEDIN_URL = 'https://www.linkedin.com/company/guru-akanksha-foundation/';
 
 const Footer = () => {
   return (
@@ -27,14 +30,14 @@ const Footer = () => {
           <div className="flex flex-col items-center md:items-start text-gray-700 space-y-2">
             <div className="flex items-center space-x-2">
               <Mail className="w-5 h-5 text-yellow-600" />
-              <p className="font-poppins">guruuakanksha2019@gmail.com</p>
+              <p className="font-poppins">guruaakanksha2019@gmail.com</p>
             </div>
           </div>
 
           <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-3 font-poppins">
             Become a Volunteer
           </h3>
-          <p className="text-gray-700 font-poppins">guruuakanksha2019@gmail.com</p>
+          <p className="text-gray-700 font-poppins">guruaakanksha2019@gmail.com</p>
         </div>
       </div>
 
@@ -58,6 +61,24 @@ const Footer = () => {
             aria-label="Guru Akanksha Foundation on Instagram (opens in a new tab)"
           >
             <Instagram size={20} />
+          </a>
+          <a
+            href={YOUTUBE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-500 hover:text-yellow-600 transition-colors"
+            aria-label="Guru Akanksha Foundation on YouTube (opens in a new tab)"
+          >
+            <Youtube size={20} />
+          </a>
+          <a
+            href={LINKEDIN_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-500 hover:text-yellow-600 transition-colors"
+            aria-label="Guru Akanksha Foundation on LinkedIn (opens in a new tab)"
+          >
+            <Linkedin size={20} />
           </a>
         </div>
         <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 mb-4">

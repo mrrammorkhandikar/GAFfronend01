@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Save, Upload, Calendar, MapPin, FileText, Plus, X } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
+import AdminRemoteImage from '@/app/admin/components/AdminRemoteImage'
+import AboutBlocksEditor from '@/app/admin/components/AboutBlocksEditor'
 import AdminApiService from '@/app/admin/services/admin-api'
+import { normalizeAboutBlocksForEditor, serializeAboutBlocks } from '@/lib/aboutBlocks'
 
 export default function EditEventPage() {
   const [event, setEvent] = useState(null)
@@ -21,7 +24,7 @@ export default function EditEventPage() {
     registrationFee: '0'
   })
   const [content, setContent] = useState({
-    about: [''],
+    about: [{ type: 'paragraph', text: '' }],
     journey: [{ title: '', description: '', imageUrl: '' }],
     keyAchievements: Array(8).fill(''),
     speakers: [{ name: '', role: '' }],
@@ -36,6 +39,17 @@ export default function EditEventPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id
+
+  const newFeaturedObjectUrl = useMemo(
+    () => (image ? URL.createObjectURL(image) : ''),
+    [image]
+  )
+
+  useEffect(() => {
+    return () => {
+      if (newFeaturedObjectUrl) URL.revokeObjectURL(newFeaturedObjectUrl)
+    }
+  }, [newFeaturedObjectUrl])
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -71,7 +85,7 @@ export default function EditEventPage() {
           const eventContent = eventData.content || {}
           const existingAchievements = eventContent.keyAchievements || []
           setContent({
-            about: eventContent.about?.length ? eventContent.about : [''],
+            about: normalizeAboutBlocksForEditor(eventContent.about),
             journey: eventContent.journey?.length ? eventContent.journey : [{ title: '', description: '', imageUrl: '' }],
             keyAchievements: existingAchievements.length >= 8
               ? existingAchievements
@@ -209,7 +223,7 @@ export default function EditEventPage() {
 
       // Add content as JSON
       const contentData = {
-        about: content.about.filter((item) => (item ?? '').trim() !== ''),
+        about: serializeAboutBlocks(content.about),
         journey: content.journey
           .filter(
             (item) =>
@@ -498,42 +512,12 @@ export default function EditEventPage() {
                   <h3 className="text-lg font-medium text-gray-900">Content Sections</h3>
                 </div>
 
-                {/* About Section */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-md font-medium text-gray-900">About This Event</h4>
-                    <button
-                      type="button"
-                      onClick={() => setContent(prev => ({ ...prev, about: [...prev.about, ''] }))}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Paragraph
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {content.about.map((paragraph, index) => (
-                      <div key={index} className="flex">
-                        <textarea
-                          value={paragraph}
-                          onChange={(e) => handleContentChange('about', index, null, e.target.value)}
-                          rows={3}
-                          className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-400"
-                          placeholder={`Paragraph ${index + 1} content`}
-                        />
-                        {content.about.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setContent(prev => ({ ...prev, about: prev.about.filter((_, i) => i !== index) }))}
-                            className="ml-2 px-2 text-red-600 hover:text-red-800 self-start mt-2"
-                          >
-                            <X className="h-5 w-5" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <AboutBlocksEditor
+                  heading="About This Event"
+                  value={content.about}
+                  onChange={(about) => setContent((prev) => ({ ...prev, about }))}
+                  useDarkText
+                />
 
                 {/* Journey Section */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -715,13 +699,24 @@ export default function EditEventPage() {
                   {imagePreview && !image && (
                     <div className="mb-3">
                       <p className="text-xs text-gray-500 mb-1">Current image:</p>
-                      <img src={imagePreview} alt="Current featured" className="w-full h-40 object-cover rounded-lg" />
+                      <AdminRemoteImage
+                        src={imagePreview}
+                        alt="Current featured"
+                        className="w-full h-40 object-cover rounded-lg"
+                        fallbackClassName="min-h-40"
+                        hint={<>Check storage or re-upload. Remote URLs use a no-referrer preview.</>}
+                      />
                     </div>
                   )}
-                  {image && (
+                  {image && newFeaturedObjectUrl && (
                     <div className="mb-3">
                       <p className="text-xs text-gray-500 mb-1">New image preview:</p>
-                      <img src={URL.createObjectURL(image)} alt="New featured" className="w-full h-40 object-cover rounded-lg" />
+                      <AdminRemoteImage
+                        src={newFeaturedObjectUrl}
+                        alt="New featured"
+                        className="w-full h-40 object-cover rounded-lg"
+                        fallbackClassName="min-h-40"
+                      />
                     </div>
                   )}
                   <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">

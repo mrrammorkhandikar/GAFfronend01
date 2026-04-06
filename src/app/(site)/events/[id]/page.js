@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import SiteApiService from '@/app/services/site-api';
+import AboutBlocksDisplay from '@/components/AboutBlocksDisplay';
+import { aboutBlocksHaveContent } from '@/lib/aboutBlocks';
 import { isRegistrationEnabled } from '@/lib/eventRegistration';
 
 function locationLooksLikeUrl(text) {
@@ -26,6 +28,7 @@ const EventDetails = ({ params }) => {
   const [relatedEvents, setRelatedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [shareStatus, setShareStatus] = useState(null);
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -209,6 +212,31 @@ const EventDetails = ({ params }) => {
     'font-poppins',
   ].join(' ');
 
+  const handleShare = async () => {
+    try {
+      const url = typeof window !== 'undefined' ? window.location.href : '';
+      const title = event?.title ? `Event: ${event.title}` : 'Event';
+
+      setShareStatus(null);
+
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({ title, url });
+        return;
+      }
+
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShareStatus('Link copied!');
+        return;
+      }
+
+      window.prompt('Copy this link:', url);
+    } catch (e) {
+      console.error('Share failed:', e);
+      setShareStatus('Could not share. Please copy the link.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fcf9e3]">
       {/* Hero Section */}
@@ -288,12 +316,12 @@ const EventDetails = ({ params }) => {
                     About This Event
                   </h2>
                   <div className="prose max-w-none font-poppins text-gray-700">
-                    {event.about && event.about.length > 0 ? (
-                      event.about.map((paragraph, index) => (
-                        <p key={index} className="mb-4">
-                          {paragraph}
-                        </p>
-                      ))
+                    {aboutBlocksHaveContent(event.about) ? (
+                      <AboutBlocksDisplay
+                        about={event.about}
+                        paragraphClassName="mb-4 last:mb-0"
+                        listClassName="list-disc pl-6 mb-4 space-y-2 last:mb-0"
+                      />
                     ) : event.fullDescription ? (
                       <p>{event.fullDescription}</p>
                     ) : null}
@@ -528,6 +556,17 @@ const EventDetails = ({ params }) => {
                         This event has been completed successfully.
                       </p>
                     </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="w-full border-2 border-[#6D190D] text-[#6D190D] py-3 rounded-lg font-semibold hover:bg-[#6D190D] hover:text-white transition-colors font-poppins mt-6"
+                  >
+                    Share Event
+                  </button>
+                  {shareStatus && (
+                    <p className="mt-3 text-sm text-gray-600 font-poppins text-center">{shareStatus}</p>
                   )}
                 </div>
 

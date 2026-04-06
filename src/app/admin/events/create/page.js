@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Upload, Calendar, MapPin, FileText, Plus, X } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
+import AdminRemoteImage from '@/app/admin/components/AdminRemoteImage'
+import AboutBlocksEditor from '@/app/admin/components/AboutBlocksEditor'
 import AdminApiService from '@/app/admin/services/admin-api'
+import { serializeAboutBlocks } from '@/lib/aboutBlocks'
 
 export default function CreateEventPage() {
   const [formData, setFormData] = useState({
@@ -20,7 +23,7 @@ export default function CreateEventPage() {
     registrationFee: '0'
   })
   const [content, setContent] = useState({
-    about: [''],
+    about: [{ type: 'paragraph', text: '' }],
     journey: [{ title: '', description: '', imageUrl: '' }],
     keyAchievements: Array(8).fill(''),
     speakers: [{ name: '', role: '' }],
@@ -31,6 +34,14 @@ export default function CreateEventPage() {
   const [error, setError] = useState('')
   const [campaigns, setCampaigns] = useState([])
   const router = useRouter()
+
+  const featuredObjectUrl = useMemo(() => (image ? URL.createObjectURL(image) : ''), [image])
+
+  useEffect(() => {
+    return () => {
+      if (featuredObjectUrl) URL.revokeObjectURL(featuredObjectUrl)
+    }
+  }, [featuredObjectUrl])
 
   // Fetch campaigns for dropdown
   useEffect(() => {
@@ -153,7 +164,7 @@ export default function CreateEventPage() {
 
       // Add content as JSON
       const contentData = {
-        about: content.about.filter((item) => (item ?? '').trim() !== ''),
+        about: serializeAboutBlocks(content.about),
         journey: content.journey
           .filter(
             (item) =>
@@ -422,42 +433,11 @@ export default function CreateEventPage() {
                   <h3 className="text-lg font-medium text-gray-900">Content Sections</h3>
                 </div>
 
-                {/* About Section */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-md font-medium text-gray-900">About This Event</h4>
-                    <button
-                      type="button"
-                      onClick={() => setContent(prev => ({ ...prev, about: [...prev.about, ''] }))}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Paragraph
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {content.about.map((paragraph, index) => (
-                      <div key={index} className="flex">
-                        <textarea
-                          value={paragraph}
-                          onChange={(e) => handleContentChange('about', index, null, e.target.value)}
-                          rows={3}
-                          className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder={`Paragraph ${index + 1} content`}
-                        />
-                        {content.about.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setContent(prev => ({ ...prev, about: prev.about.filter((_, i) => i !== index) }))}
-                            className="ml-2 px-2 text-red-600 hover:text-red-800 self-start mt-2"
-                          >
-                            <X className="h-5 w-5" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <AboutBlocksEditor
+                  heading="About This Event"
+                  value={content.about}
+                  onChange={(about) => setContent((prev) => ({ ...prev, about }))}
+                />
 
                 {/* Journey Section */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -636,6 +616,17 @@ export default function CreateEventPage() {
                 {/* Featured Image */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <h4 className="text-md font-medium text-gray-900 mb-4">Featured Image</h4>
+                  {featuredObjectUrl && (
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                      <AdminRemoteImage
+                        src={featuredObjectUrl}
+                        alt="Featured preview"
+                        className="w-full h-40 object-cover rounded-lg"
+                        fallbackClassName="min-h-40"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center">
                     <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">

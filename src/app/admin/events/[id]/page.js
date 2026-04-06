@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import Image from 'next/image'
-import { ArrowLeft, Calendar, MapPin, Globe, Image as ImageIcon, FileText, Edit } from 'lucide-react'
+import { ArrowLeft, Calendar, MapPin, Globe, FileText, Edit } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
+import AdminRemoteImage from '@/app/admin/components/AdminRemoteImage'
 import AdminApiService from '@/app/admin/services/admin-api'
+import AboutBlocksDisplay from '@/components/AboutBlocksDisplay'
+import { aboutBlocksHaveContent } from '@/lib/aboutBlocks'
 
 export default function ViewEventPage() {
   const [event, setEvent] = useState(null)
@@ -98,15 +100,11 @@ export default function ViewEventPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* About Section */}
-            {aboutContent.length > 0 && (
+            {aboutBlocksHaveContent(aboutContent) && (
               <div className="bg-white shadow rounded-lg p-6">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">About This Event</h2>
-                <div className="space-y-4">
-                  {aboutContent.map((paragraph, index) => (
-                    <p key={index} className="text-gray-700">
-                      {paragraph}
-                    </p>
-                  ))}
+                <div className="space-y-4 text-gray-700">
+                  <AboutBlocksDisplay about={aboutContent} paragraphClassName="mb-3 last:mb-0" />
                 </div>
               </div>
             )}
@@ -128,12 +126,11 @@ export default function ViewEventPage() {
                         <p className="mt-1 text-gray-600">{journeyItem.description}</p>
                         {journeyItem.imageUrl && (
                           <div className="mt-3">
-                            <Image
+                            <AdminRemoteImage
                               src={journeyItem.imageUrl}
-                              alt={journeyItem.title}
-                              width={500}
-                              height={300}
-                              className="rounded-lg max-w-md w-full h-auto"
+                              alt={journeyItem.title || 'Journey'}
+                              className="rounded-lg max-w-md w-full max-h-56 object-contain bg-gray-50"
+                              fallbackClassName="max-w-md w-full min-h-28"
                             />
                           </div>
                         )}
@@ -168,12 +165,16 @@ export default function ViewEventPage() {
             {event.imageUrl && (
               <div className="bg-white shadow rounded-lg p-6">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Featured Image</h2>
-                <Image
+                <AdminRemoteImage
                   src={event.imageUrl}
                   alt={event.title}
-                  width={500}
-                  height={300}
-                  className="w-full rounded-lg h-auto"
+                  className="w-full max-h-[min(70vh,520px)] rounded-lg h-auto object-contain bg-gray-50"
+                  fallbackClassName="min-h-[200px]"
+                  hint={
+                    <>
+                      The file may be missing in storage. Re-upload from <strong>Edit event</strong>.
+                    </>
+                  }
                 />
               </div>
             )}

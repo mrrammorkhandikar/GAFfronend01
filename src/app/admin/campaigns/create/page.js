@@ -1,10 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Upload, Plus, X, Image, Target, FileText } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
+import AdminRemoteImage from '@/app/admin/components/AdminRemoteImage'
+import AboutBlocksEditor from '@/app/admin/components/AboutBlocksEditor'
 import AdminApiService from '@/app/admin/services/admin-api'
+import { aboutBlocksHaveContent, serializeAboutBlocks } from '@/lib/aboutBlocks'
+import {
+  filterNonEmptyImpactNumbers,
+  filterNonEmptyKeyFocusAreas,
+  filterNonEmptyTestimonials,
+  keyFocusAreaToPlainString,
+} from '@/lib/campaignContent'
 
 export default function CreateCampaignPage() {
   const [formData, setFormData] = useState({
@@ -19,7 +28,7 @@ export default function CreateCampaignPage() {
     isActive: true
   })
   const [content, setContent] = useState({
-    about: [''],
+    about: [{ type: 'paragraph', text: '' }],
     impactGallery: Array(4).fill(''),
     keyFocusAreas: Array(8).fill(''),
     impactNumbers: [{ label: '', value: '' }],
@@ -29,6 +38,14 @@ export default function CreateCampaignPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+
+  const featuredObjectUrl = useMemo(() => (image ? URL.createObjectURL(image) : ''), [image])
+
+  useEffect(() => {
+    return () => {
+      if (featuredObjectUrl) URL.revokeObjectURL(featuredObjectUrl)
+    }
+  }, [featuredObjectUrl])
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -51,24 +68,6 @@ export default function CreateCampaignPage() {
       ...prev,
       [section]: prev[section].map((item, i) => i === index ? value : item)
     }))
-  }
-
-  const addContentItem = (section) => {
-    if (section === 'about') {
-      setContent(prev => ({
-        ...prev,
-        [section]: [...prev[section], '']
-      }))
-    }
-  }
-
-  const removeContentItem = (section, index) => {
-    if (section === 'about' && content[section].length > 1) {
-      setContent(prev => ({
-        ...prev,
-        [section]: prev[section].filter((_, i) => i !== index)
-      }))
-    }
   }
 
   const handleImageUpload = (index, file) => {
@@ -112,10 +111,8 @@ export default function CreateCampaignPage() {
       return false
     }
     
-    // Validate content sections
-    const aboutContent = content.about.filter(item => item.trim() !== '')
-    if (aboutContent.length === 0) {
-      setError('At least one about paragraph is required')
+    if (!aboutBlocksHaveContent(content.about)) {
+      setError('Add at least one paragraph or bullet list in About This Campaign')
       return false
     }
     
@@ -144,13 +141,13 @@ export default function CreateCampaignPage() {
 
       // Add content as JSON — only include string URLs for gallery, not File objects
       const contentData = {
-        about: content.about.filter(item => item.trim() !== ''),
+        about: serializeAboutBlocks(content.about),
         impactGallery: content.impactGallery
           .map(item => (typeof item === 'string' && item !== '') ? item : (item?.url || null))
           .filter(Boolean),
-        keyFocusAreas: content.keyFocusAreas.filter(item => item.trim() !== ''),
-        impactNumbers: content.impactNumbers.filter(n => n.label.trim() !== '' && n.value.trim() !== ''),
-        testimonials: content.testimonials.filter(t => t.quote.trim() !== '')
+        keyFocusAreas: filterNonEmptyKeyFocusAreas(content.keyFocusAreas).map(keyFocusAreaToPlainString),
+        impactNumbers: filterNonEmptyImpactNumbers(content.impactNumbers),
+        testimonials: filterNonEmptyTestimonials(content.testimonials),
       }
       formDataObj.append('content', JSON.stringify(contentData))
 
@@ -383,43 +380,11 @@ export default function CreateCampaignPage() {
                 </div>
 
                 {/* About Section */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-md font-medium text-gray-900">About This Campaign</h4>
-                    <button
-                      type="button"
-                      onClick={() => addContentItem('about')}
-                      className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Paragraph
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {content.about.map((paragraph, index) => (
-                      <div key={index} className="flex">
-                        <div className="flex-1">
-                          <textarea
-                            value={paragraph}
-                            onChange={(e) => handleContentChange('about', index, e.target.value)}
-                            rows={3}
-                            className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder={`Paragraph ${index + 1} content`}
-                          />
-                        </div>
-                        {content.about.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeContentItem('about', index)}
-                            className="ml-2 px-3 py-2 text-red-600 hover:text-red-800 self-start mt-2"
-                          >
-                            <X className="h-5 w-5" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <AboutBlocksEditor
+                  heading="About This Campaign"
+                  value={content.about}
+                  onChange={(about) => setContent((prev) => ({ ...prev, about }))}
+                />
 
                 {/* Impact Gallery Section */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -433,9 +398,19 @@ export default function CreateCampaignPage() {
                         {imageItem ? (
                           <div className="relative w-full h-full">
                             {imageItem.preview ? (
-                              <img src={imageItem.preview} alt={`Gallery ${index+1}`} className="w-full h-24 object-cover" />
+                              <AdminRemoteImage
+                                src={imageItem.preview}
+                                alt={`Gallery ${index + 1}`}
+                                className="w-full h-24 object-cover"
+                                fallbackClassName="min-h-24"
+                              />
                             ) : typeof imageItem === 'string' ? (
-                              <img src={imageItem} alt={`Gallery ${index+1}`} className="w-full h-24 object-cover" onError={e=>{e.target.style.display='none'}} />
+                              <AdminRemoteImage
+                                src={imageItem}
+                                alt={`Gallery ${index + 1}`}
+                                className="w-full h-24 object-cover"
+                                fallbackClassName="min-h-24"
+                              />
                             ) : (
                               <div className="h-24 flex items-center justify-center bg-gray-100">
                                 <span className="text-xs text-gray-500 px-2 truncate">{imageItem?.file?.name || 'Image'}</span>
@@ -616,6 +591,17 @@ export default function CreateCampaignPage() {
                 {/* Main Featured Image */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <h4 className="text-md font-medium text-gray-900 mb-4">Featured Image</h4>
+                  {featuredObjectUrl && (
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-500 mb-1">Preview:</p>
+                      <AdminRemoteImage
+                        src={featuredObjectUrl}
+                        alt="Featured preview"
+                        className="w-full h-40 object-cover rounded-lg"
+                        fallbackClassName="min-h-40"
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center">
                     <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">

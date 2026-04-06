@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Calendar, MapPin, IndianRupee, Image as ImageIcon, FileText, Edit } from 'lucide-react'
 import AdminLayout from '@/app/admin/components/AdminLayout'
+import AdminRemoteImage from '@/app/admin/components/AdminRemoteImage'
 import AdminApiService from '@/app/admin/services/admin-api'
+import AboutBlocksDisplay from '@/components/AboutBlocksDisplay'
+import { aboutBlocksHaveContent } from '@/lib/aboutBlocks'
+import { keyFocusAreaToPlainString } from '@/lib/campaignContent'
 
 export default function ViewCampaignPage() {
   const [campaign, setCampaign] = useState(null)
@@ -63,7 +67,9 @@ export default function ViewCampaignPage() {
   const content = campaign.content || {}
   const aboutContent = content.about || []
   const impactGallery = content.impactGallery || []
-  const keyFocusAreas = content.keyFocusAreas || []
+  const keyFocusAreas = (content.keyFocusAreas || []).filter(
+    (a) => keyFocusAreaToPlainString(a).trim() !== ''
+  )
 
   return (
     <AdminLayout>
@@ -97,15 +103,11 @@ export default function ViewCampaignPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* About Section */}
-            {aboutContent.length > 0 && (
+            {aboutBlocksHaveContent(aboutContent) && (
               <div className="bg-white shadow rounded-lg p-6">
                 <h2 className="text-lg font-medium text-gray-900 mb-4">About This Campaign</h2>
-                <div className="space-y-4">
-                  {aboutContent.map((paragraph, index) => (
-                    <p key={index} className="text-gray-700">
-                      {paragraph}
-                    </p>
-                  ))}
+                <div className="space-y-4 text-gray-700">
+                  <AboutBlocksDisplay about={aboutContent} paragraphClassName="mb-3 last:mb-0" />
                 </div>
               </div>
             )}
@@ -120,7 +122,7 @@ export default function ViewCampaignPage() {
                       <div className="flex-shrink-0 h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
                         <div className="h-2 w-2 rounded-full bg-blue-600"></div>
                       </div>
-                      <p className="ml-3 text-gray-700">{area}</p>
+                      <p className="ml-3 text-gray-700">{keyFocusAreaToPlainString(area)}</p>
                     </li>
                   ))}
                 </ul>
@@ -135,10 +137,11 @@ export default function ViewCampaignPage() {
                   {impactGallery.map((image, index) => (
                     <div key={index} className="aspect-square rounded-lg overflow-hidden">
                       {image ? (
-                        <img
+                        <AdminRemoteImage
                           src={image}
                           alt={`Impact ${index + 1}`}
                           className="w-full h-full object-cover"
+                          fallbackClassName="min-h-full w-full"
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -158,10 +161,16 @@ export default function ViewCampaignPage() {
             {campaign.imageUrl && (
               <div className="bg-white shadow rounded-lg p-6">
                 <h3 className="text-md font-medium text-gray-900 mb-4">Featured Image</h3>
-                <img
+                <AdminRemoteImage
                   src={campaign.imageUrl}
                   alt={campaign.title}
-                  className="w-full rounded-lg"
+                  className="w-full max-h-[min(70vh,520px)] rounded-lg object-contain bg-gray-50"
+                  fallbackClassName="min-h-[200px]"
+                  hint={
+                    <>
+                      Re-upload from <strong>Edit campaign</strong> if the file was moved or deleted.
+                    </>
+                  }
                 />
               </div>
             )}
