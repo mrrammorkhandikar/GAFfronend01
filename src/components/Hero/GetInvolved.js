@@ -56,7 +56,7 @@ const GetInvolved = () => {
       description:
         'Contribute by joining as a volunteer for online or offline campaigns. You may have the skills that we are looking for.',
       buttonText: 'Join us now',
-      buttonLink: '/volunteer', 
+      buttonLink: '/careers', 
     },
     {
       iconPath: ICON_PATHS.donate,
